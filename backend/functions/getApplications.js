@@ -1,8 +1,11 @@
-const AWS = require('aws-sdk');
-const dynamodb = new AWS.DynamoDB.DocumentClient();
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 
 exports.handler = async (event) => {
   const { userId } = event.pathParameters;
+
+  const client = new DynamoDBClient({ region: process.env.AWS_REGION });
+  const dynamodb = DynamoDBDocumentClient.from(client);
 
   const params = {
     TableName: process.env.APPLICATIONS_TABLE,
@@ -13,7 +16,7 @@ exports.handler = async (event) => {
   };
 
   try {
-    const result = await dynamodb.query(params).promise();
+    const result = await dynamodb.send(new QueryCommand(params));
     return {
       statusCode: 200,
       body: JSON.stringify(result.Items),

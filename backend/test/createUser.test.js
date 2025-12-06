@@ -3,7 +3,7 @@ const expect = chai.expect;
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 
-describe('getUser', () => {
+describe('createUser', () => {
   let sandbox;
   let handler;
 
@@ -19,9 +19,8 @@ describe('getUser', () => {
     delete process.env.USERS_TABLE;
   });
 
-  it('should return user data when user exists', async () => {
-    const mockUser = { userId: '123', name: 'John Doe' };
-    const mockSend = sandbox.stub().resolves({ Item: mockUser });
+  it('should create a user successfully', async () => {
+    const mockSend = sandbox.stub().resolves();
     
     // Mock the DynamoDBDocumentClient
     const mockDynamoDBDocumentClient = {
@@ -30,7 +29,7 @@ describe('getUser', () => {
     
     const mockDynamoDBClient = sandbox.stub();
     
-    handler = proxyquire('../functions/getUser', {
+    handler = proxyquire('../functions/createUser', {
       '@aws-sdk/client-dynamodb': { DynamoDBClient: mockDynamoDBClient },
       '@aws-sdk/lib-dynamodb': {
         DynamoDBDocumentClient: {
@@ -39,15 +38,22 @@ describe('getUser', () => {
       }
     }).handler;
 
-    const event = { pathParameters: { userId: '123' } };
+    const event = {
+      body: JSON.stringify({
+        userId: '123',
+        email: 'test@example.com',
+        name: 'Test User'
+      })
+    };
     const result = await handler(event);
 
-    expect(result.statusCode).to.equal(200);
-    expect(JSON.parse(result.body)).to.deep.equal(mockUser);
+    expect(result.statusCode).to.equal(201);
+    expect(JSON.parse(result.body).message).to.equal('User created successfully');
+    expect(mockSend.calledOnce).to.be.true;
   });
 
-  it('should return 404 when user does not exist', async () => {
-    const mockSend = sandbox.stub().resolves({});
+  it('should return 500 on error', async () => {
+    const mockSend = sandbox.stub().rejects(new Error('DynamoDB error'));
     
     // Mock the DynamoDBDocumentClient
     const mockDynamoDBDocumentClient = {
@@ -56,7 +62,7 @@ describe('getUser', () => {
     
     const mockDynamoDBClient = sandbox.stub();
     
-    handler = proxyquire('../functions/getUser', {
+    handler = proxyquire('../functions/createUser', {
       '@aws-sdk/client-dynamodb': { DynamoDBClient: mockDynamoDBClient },
       '@aws-sdk/lib-dynamodb': {
         DynamoDBDocumentClient: {
@@ -65,10 +71,16 @@ describe('getUser', () => {
       }
     }).handler;
 
-    const event = { pathParameters: { userId: '123' } };
+    const event = {
+      body: JSON.stringify({
+        userId: '123',
+        email: 'test@example.com',
+        name: 'Test User'
+      })
+    };
     const result = await handler(event);
 
-    expect(result.statusCode).to.equal(404);
-    expect(JSON.parse(result.body).message).to.equal('User not found');
+    expect(result.statusCode).to.equal(500);
+    expect(JSON.parse(result.body).message).to.equal('Internal server error');
   });
 });
