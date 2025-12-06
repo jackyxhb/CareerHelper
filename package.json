@@ -1,0 +1,20 @@
+{
+  "name": "careerhelper",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "web",
+    "mobile",
+    "shared"
+  ],
+  "scripts": {
+    "install:all": "yarn install",
+    "build": "yarn workspaces foreach -pt run build",
+    "deploy:backend": "cd backend && sls deploy",
+    "deploy:web": "cd web && amplify push",
+    "deploy:mobile": "cd mobile && amplify push"
+  },
+  "devDependencies": {
+    "yarn": "^1.22.0"
+  }
+}

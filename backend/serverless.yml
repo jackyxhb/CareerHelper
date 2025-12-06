@@ -1,0 +1,140 @@
+service: careerhelper-backend
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: dev
+  region: us-east-1
+  environment:
+    USERS_TABLE: ${self:custom.usersTable}
+    JOBS_TABLE: ${self:custom.jobsTable}
+    EXPERIENCES_TABLE: ${self:custom.experiencesTable}
+    APPLICATIONS_TABLE: ${self:custom.applicationsTable}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: "*"
+
+custom:
+  usersTable: !Ref UsersTable
+  jobsTable: !Ref JobsTable
+  experiencesTable: !Ref ExperiencesTable
+  applicationsTable: !Ref ApplicationsTable
+
+functions:
+  getUser:
+    handler: functions/getUser.handler
+    events:
+      - httpApi:
+          path: /users/{userId}
+          method: get
+
+  createUser:
+    handler: functions/createUser.handler
+    events:
+      - httpApi:
+          path: /users
+          method: post
+
+  getJobs:
+    handler: functions/getJobs.handler
+    events:
+      - httpApi:
+          path: /jobs
+          method: get
+
+  createJob:
+    handler: functions/createJob.handler
+    events:
+      - httpApi:
+          path: /jobs
+          method: post
+
+  getExperiences:
+    handler: functions/getExperiences.handler
+    events:
+      - httpApi:
+          path: /experiences/{userId}
+          method: get
+
+  createExperience:
+    handler: functions/createExperience.handler
+    events:
+      - httpApi:
+          path: /experiences
+          method: post
+
+  getApplications:
+    handler: functions/getApplications.handler
+    events:
+      - httpApi:
+          path: /applications/{userId}
+          method: get
+
+  createApplication:
+    handler: functions/createApplication.handler
+    events:
+      - httpApi:
+          path: /applications
+          method: post
+
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: Users
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    JobsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: Jobs
+        AttributeDefinitions:
+          - AttributeName: jobId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: jobId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    ExperiencesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: Experiences
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: experienceId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+          - AttributeName: experienceId
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+
+    ApplicationsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: Applications
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: applicationId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+          - AttributeName: applicationId
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
