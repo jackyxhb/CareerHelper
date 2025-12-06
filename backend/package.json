@@ -4,14 +4,17 @@
   "description": "Backend for CareerHelper",
   "main": "handler.js",
   "scripts": {
-    "test": "mocha",
+    "test": "mocha test/**/*.test.js",
     "deploy": "serverless deploy"
   },
   "dependencies": {
-    "aws-sdk": "^2.1450.0"
+    "aws-sdk": "^2.1450.0",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "mocha": "^10.2.0",
-    "serverless": "^3.35.0"
+    "serverless": "^3.35.0",
+    "chai": "^4.3.7",
+    "sinon": "^15.0.0"
   }
 }
