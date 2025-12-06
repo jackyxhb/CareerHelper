@@ -1,6 +1,8 @@
 # CareerHelper
 
 [![CI/CD](https://github.com/jackyxhb/CareerHelper/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/jackyxhb/CareerHelper/actions/workflows/ci-cd.yml)
+[![Release](https://img.shields.io/github/v/release/jackyxhb/CareerHelper)](https://github.com/jackyxhb/CareerHelper/releases/latest)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 A comprehensive career management platform built as a monorepo with serverless AWS backend, React web app, and React Native mobile app. CareerHelper empowers job seekers and professionals to manage their entire career lifecycle through intelligent tracking, personalized recommendations, and seamless cross-platform experience.
 
@@ -13,8 +15,35 @@ A comprehensive career management platform built as a monorepo with serverless A
 ✅ **Testing**: Unit tests with AWS SDK v3 mocking  
 ✅ **CI/CD**: GitHub Actions workflows for automated deployment  
 ✅ **Documentation**: API specs and development guidelines  
+✅ **Release**: v0.0.1 published and production-ready  
 
-**Ready for deployment and production use!**
+**🎉 Officially released as v0.0.1 - Ready for production deployment!**
+
+## 📦 Latest Release
+
+### [v0.0.1](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.1) - Initial Release
+
+**Released**: December 7, 2025
+
+#### 🎉 Features
+- Complete serverless AWS backend with 8 Lambda functions
+- React web application with full career management features
+- React Native mobile app for iOS and Android
+- AWS CDK infrastructure with DynamoDB, Cognito, and S3
+- Comprehensive unit testing with AWS SDK v3 mocking
+- GitHub Actions CI/CD pipeline
+- Complete API documentation and development guidelines
+
+#### 📥 Installation Options
+```bash
+# Install latest release
+git clone https://github.com/jackyxhb/CareerHelper.git
+cd CareerHelper
+git checkout v0.0.1
+
+# Or download from releases
+# https://github.com/jackyxhb/CareerHelper/releases/latest
+```
 
 ## 🌟 Features
 
@@ -78,12 +107,25 @@ The platform uses four primary data models with user-scoped partitioning:
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### For Users (Using Released Version)
+
+1. **Download the latest release**
+   ```bash
+   git clone https://github.com/jackyxhb/CareerHelper.git
+   cd CareerHelper
+   git checkout v0.0.1
+   ```
+
+2. **Follow deployment instructions below**
+
+### For Developers (Contributing to the Project)
+
+#### Prerequisites
 - Node.js 18+ and Yarn
 - AWS CLI configured with appropriate permissions
 - Xcode (for iOS development) or Android Studio (for Android development)
 
-### Installation
+#### Installation
 
 1. **Clone the repository**
    ```bash
@@ -125,7 +167,7 @@ The platform uses four primary data models with user-scoped partitioning:
    cd ..
    ```
 
-### Development
+#### Development
 
 Start the development servers:
 
@@ -137,7 +179,7 @@ cd web && yarn start
 cd mobile && yarn start
 ```
 
-### Testing
+#### Testing
 
 ```bash
 # Backend tests
@@ -282,14 +324,50 @@ We welcome contributions! Please see our [Development Instructions](instructions
 - **Prettier**: Consistent code formatting
 - **Testing**: Minimum 80% code coverage required
 
-## 📋 Roadmap
+## 📋 Changelog
 
-- [ ] AI-powered resume optimization
+### [v0.0.1](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.1) - December 7, 2025
+- 🎉 **Initial Release**: Complete career management platform
+- 🏗️ **Full Architecture**: Serverless backend, web app, mobile app, infrastructure
+- ✅ **Production Ready**: Comprehensive testing, CI/CD, documentation
+- 🚀 **Deployment Ready**: All components configured for AWS deployment
+
+See [Releases](https://github.com/jackyxhb/CareerHelper/releases) for full changelog.
+
+## 🚀 Roadmap
+
+### Planned Features
+- [ ] AI-powered resume optimization and suggestions
 - [ ] LinkedIn integration for network building
-- [ ] Advanced analytics dashboard
-- [ ] Mobile offline support
-- [ ] Multi-language support
-- [ ] Advanced job matching algorithms
+- [ ] Advanced analytics dashboard with career insights
+- [ ] Mobile offline support for critical features
+- [ ] Multi-language support (i18n)
+- [ ] Advanced job matching algorithms with ML
+- [ ] Interview preparation tools and mock interviews
+- [ ] Salary negotiation assistance
+- [ ] Career transition planning and guidance
+
+### Future Releases
+- **v0.1.0**: Enhanced user experience and performance optimizations
+- **v0.2.0**: AI features and advanced analytics
+- **v1.0.0**: Enterprise-ready with advanced security and compliance
+
+## 🔄 Staying Up to Date
+
+### Watch for Updates
+- ⭐ **Star** this repository to get notified of new releases
+- 🔔 **Watch** releases to receive notifications
+- 📧 **Subscribe** to release announcements
+
+### Updating Your Installation
+```bash
+# Check for new releases
+gh release list
+
+# Update to latest version
+git fetch --tags
+git checkout v0.0.2  # Replace with latest version
+```
 
 ## 📄 License
 
@@ -304,10 +382,20 @@ This project is licensed under the MIT License.
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/jackyxhb/CareerHelper/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/jackyxhb/CareerHelper/discussions)
-- **Documentation**: [Full Docs](docs/)
+- **📖 Documentation**: [Full Docs](docs/) | [API Reference](docs/api.md)
+- **🐛 Issues**: [GitHub Issues](https://github.com/jackyxhb/CareerHelper/issues)
+- **💬 Discussions**: [GitHub Discussions](https://github.com/jackyxhb/CareerHelper/discussions)
+- **📦 Releases**: [Download Latest](https://github.com/jackyxhb/CareerHelper/releases/latest)
+- **🔄 Changelog**: [Release Notes](https://github.com/jackyxhb/CareerHelper/releases)
+
+### Getting Help
+- **Setup Issues**: Check the [Troubleshooting](#troubleshooting) section
+- **Deployment Help**: See [Deployment](#deployment) instructions
+- **Feature Requests**: Open a [GitHub Issue](https://github.com/jackyxhb/CareerHelper/issues/new?template=feature_request.md)
+- **Bug Reports**: Use the [Bug Report](https://github.com/jackyxhb/CareerHelper/issues/new?template=bug_report.md) template
 
 ---
 
 **Built with ❤️ for job seekers and career professionals worldwide**
+
+**🎉 Officially released as v0.0.1 - Start your career journey today!**
