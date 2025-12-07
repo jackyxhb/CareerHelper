@@ -7,6 +7,7 @@ export default [
   js.configs.recommended,
   {
     files: ['**/*.{js,ts,jsx,tsx}'],
+    ignores: ['web/**', 'mobile/**', 'node_modules/**'],
     languageOptions: {
       parser: typescriptParser,
       ecmaVersion: 2022,

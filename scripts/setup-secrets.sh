@@ -7,7 +7,7 @@ set -e
 
 # Configuration
 STAGE=${1:-dev}
-REGION=${2:-us-east-1}
+REGION=${2:-$(aws configure get region)}
 STACK_NAME="careerhelper-infrastructure-${STAGE}"
 
 echo "Setting up secrets for CareerHelper (${STAGE}) in region ${REGION}"

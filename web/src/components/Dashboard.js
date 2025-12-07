@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { API, Auth } from 'aws-amplify';
+import { API } from 'aws-amplify';
 
 function Dashboard() {
   const [user, setUser] = useState(null);
@@ -13,23 +13,23 @@ function Dashboard() {
 
   const fetchUserData = async () => {
     try {
-      const currentUser = await Auth.currentAuthenticatedUser();
-      setUser(currentUser);
+      // For now, use a test user ID since authentication is disabled
+      const testUserId = 'test-user-123';
 
       const jobsData = await API.get('CareerHelperAPI', '/jobs');
-      setJobs(jobsData);
+      setJobs(jobsData || []);
 
       const experiencesData = await API.get(
         'CareerHelperAPI',
-        `/experiences/${currentUser.username}`
+        `/experiences/${testUserId}`
       );
-      setExperiences(experiencesData);
+      setExperiences(experiencesData || []);
 
       const applicationsData = await API.get(
         'CareerHelperAPI',
-        `/applications/${currentUser.username}`
+        `/applications/${testUserId}`
       );
-      setApplications(applicationsData);
+      setApplications(applicationsData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     }

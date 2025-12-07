@@ -1,25 +1,19 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Amplify } from 'aws-amplify';
-import { withAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import Dashboard from './components/Dashboard';
 import JobSearch from './components/JobSearch';
 import ExperienceManager from './components/ExperienceManager';
 import ApplicationTracker from './components/ApplicationTracker';
 
-// Configure Amplify (replace with your config)
+// Configure Amplify
 Amplify.configure({
-  Auth: {
-    region: 'us-east-1',
-    userPoolId: 'your-user-pool-id',
-    userPoolWebClientId: 'your-client-id',
-  },
   API: {
     endpoints: [
       {
         name: 'CareerHelperAPI',
-        endpoint: 'your-api-gateway-url',
+        endpoint: 'https://lm5lnut0n5.execute-api.us-east-1.amazonaws.com',
         region: 'us-east-1',
       },
     ],
@@ -51,4 +45,4 @@ function App() {
   );
 }
 
-export default withAuthenticator(App);
+export default App;

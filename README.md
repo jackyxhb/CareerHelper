@@ -11,7 +11,7 @@ A comprehensive career management platform built as a monorepo with serverless A
 ## 📊 Project Status
 
 ✅ **Backend**: Complete serverless AWS implementation with 8 Lambda functions  
-✅ **Web App**: Full React application with routing and components  
+✅ **Web App**: Full React application deployed to AWS S3 (auth disabled for dev)  
 ✅ **Mobile App**: React Native app with cross-platform support  
 ✅ **Infrastructure**: AWS CDK stack with DynamoDB, Cognito, and S3  
 ✅ **Testing**: Unit tests with AWS SDK v3 mocking  
@@ -20,6 +20,10 @@ A comprehensive career management platform built as a monorepo with serverless A
 ✅ **Release**: v0.0.1 published and production-ready  
 
 **🎉 Officially released as v0.0.1 - Ready for production deployment!**
+
+#### 🌐 Live Demo
+- **Web App**: http://careerhelper-web-dev-1765124463.s3-website-us-east-1.amazonaws.com
+- **API**: https://lm5lnut0n5.execute-api.us-east-1.amazonaws.com
 
 ## 📦 Latest Release
 
@@ -263,8 +267,8 @@ yarn deploy
 
 ### Web Deployment
 ```bash
-cd web
-amplify publish
+yarn deploy:web
+# Deploys to: http://careerhelper-web-dev-1765124463.s3-website-us-east-1.amazonaws.com
 ```
 
 ### Mobile Deployment

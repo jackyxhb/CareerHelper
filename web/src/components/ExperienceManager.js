@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { API, Auth } from 'aws-amplify';
+import { API } from 'aws-amplify';
 
 function ExperienceManager() {
   const [experiences, setExperiences] = useState([]);
@@ -17,12 +17,13 @@ function ExperienceManager() {
 
   const fetchExperiences = async () => {
     try {
-      const currentUser = await Auth.currentAuthenticatedUser();
+      // For now, use a test user ID since authentication is disabled
+      const testUserId = 'test-user-123';
       const experiencesData = await API.get(
         'CareerHelperAPI',
-        `/experiences/${currentUser.username}`
+        `/experiences/${testUserId}`
       );
-      setExperiences(experiencesData);
+      setExperiences(experiencesData || []);
     } catch (error) {
       console.error('Error fetching experiences:', error);
     }
