@@ -1,33 +1,35 @@
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const DynamoDBUtil = require('../utils/dynamodb');
+const { ErrorHandler, ConflictError } = require('../utils/errorHandler');
+const { RequestHandler, ValidationSchemas } = require('../utils/requestHandler');
 
-exports.handler = async event => {
-  const { userId, email, name } = JSON.parse(event.body);
+const dynamodb = new DynamoDBUtil(process.env.USERS_TABLE);
+const requestHandler = new RequestHandler('createUser');
 
-  const client = new DynamoDBClient({ region: process.env.AWS_REGION });
-  const dynamodb = DynamoDBDocumentClient.from(client);
+exports.handler = requestHandler.createResponse(async (event) => {
+  // Parse and validate request body
+  const userData = requestHandler.parseBody(event, ['userId', 'email', 'name']);
 
-  const params = {
-    TableName: process.env.USERS_TABLE,
-    Item: {
-      userId,
-      email,
-      name,
-      createdAt: new Date().toISOString(),
-    },
+  // Validate input against schema
+  requestHandler.validateInput(userData, ValidationSchemas.user);
+
+  // Check if user already exists
+  const existingUser = await dynamodb.getItem({ userId: userData.userId });
+  if (existingUser) {
+    throw new ConflictError(`User with ID ${userData.userId} already exists`);
+  }
+
+  // Prepare user item
+  const userItem = {
+    ...userData,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
-  try {
-    await dynamodb.send(new PutCommand(params));
-    return {
-      statusCode: 201,
-      body: JSON.stringify({ message: 'User created successfully' }),
-    };
-  } catch (error) {
-    console.error(error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Internal server error' }),
-    };
-  }
-};
+  // Save user to DynamoDB with circuit breaker protection
+  await dynamodb.putItem(userItem);
+
+  return ErrorHandler.createSuccessResponse(
+    { message: 'User created successfully', userId: userData.userId },
+    201
+  );
+});

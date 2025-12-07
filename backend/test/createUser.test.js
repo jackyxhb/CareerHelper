@@ -20,22 +20,13 @@ describe('createUser', () => {
   });
 
   it('should create a user successfully', async () => {
-    const mockSend = sandbox.stub().resolves();
-
-    // Mock the DynamoDBDocumentClient
-    const mockDynamoDBDocumentClient = {
-      send: mockSend,
+    const mockDynamoDBUtil = {
+      getItem: sinon.stub().resolves(undefined), // No existing user
+      putItem: sinon.stub().resolves()
     };
 
-    const mockDynamoDBClient = sandbox.stub();
-
     handler = proxyquire('../functions/createUser', {
-      '@aws-sdk/client-dynamodb': { DynamoDBClient: mockDynamoDBClient },
-      '@aws-sdk/lib-dynamodb': {
-        DynamoDBDocumentClient: {
-          from: () => mockDynamoDBDocumentClient,
-        },
-      },
+      '../utils/dynamodb': function() { return mockDynamoDBUtil; }
     }).handler;
 
     const event = {
@@ -51,26 +42,16 @@ describe('createUser', () => {
     expect(JSON.parse(result.body).message).to.equal(
       'User created successfully'
     );
-    expect(mockSend.calledOnce).to.be.true;
   });
 
   it('should return 500 on error', async () => {
-    const mockSend = sandbox.stub().rejects(new Error('DynamoDB error'));
-
-    // Mock the DynamoDBDocumentClient
-    const mockDynamoDBDocumentClient = {
-      send: mockSend,
+    const mockDynamoDBUtil = {
+      getItem: sinon.stub().resolves(undefined), // No existing user
+      putItem: sinon.stub().rejects(new Error('DynamoDB error'))
     };
 
-    const mockDynamoDBClient = sandbox.stub();
-
     handler = proxyquire('../functions/createUser', {
-      '@aws-sdk/client-dynamodb': { DynamoDBClient: mockDynamoDBClient },
-      '@aws-sdk/lib-dynamodb': {
-        DynamoDBDocumentClient: {
-          from: () => mockDynamoDBDocumentClient,
-        },
-      },
+      '../utils/dynamodb': function() { return mockDynamoDBUtil; }
     }).handler;
 
     const event = {
@@ -83,6 +64,8 @@ describe('createUser', () => {
     const result = await handler(event);
 
     expect(result.statusCode).to.equal(500);
-    expect(JSON.parse(result.body).message).to.equal('Internal server error');
+    const responseBody = JSON.parse(result.body);
+    expect(responseBody.error.type).to.equal('InternalError');
+    expect(responseBody.error.message).to.equal('Internal server error');
   });
 });

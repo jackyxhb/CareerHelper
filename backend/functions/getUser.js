@@ -1,35 +1,25 @@
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, GetCommand } = require('@aws-sdk/lib-dynamodb');
+const DynamoDBUtil = require('../utils/dynamodb');
+const { ErrorHandler, NotFoundError } = require('../utils/errorHandler');
+const { RequestHandler, ValidationSchemas } = require('../utils/requestHandler');
 
-exports.handler = async event => {
-  const { userId } = event.pathParameters;
+const dynamodb = new DynamoDBUtil(process.env.USERS_TABLE);
+const requestHandler = new RequestHandler('getUser');
 
-  const client = new DynamoDBClient({ region: process.env.AWS_REGION });
-  const dynamodb = DynamoDBDocumentClient.from(client);
+exports.handler = requestHandler.createResponse(async (event) => {
+  // Parse and validate path parameters
+  const { userId } = requestHandler.parsePathParameters(event, ['userId']);
 
-  const params = {
-    TableName: process.env.USERS_TABLE,
-    Key: { userId },
-  };
+  // Validate input
+  requestHandler.validateInput({ userId }, {
+    userId: ValidationSchemas.user.userId
+  });
 
-  try {
-    const result = await dynamodb.send(new GetCommand(params));
-    if (result.Item) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify(result.Item),
-      };
-    } else {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: 'User not found' }),
-      };
-    }
-  } catch (error) {
-    console.error(error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Internal server error' }),
-    };
+  // Get user from DynamoDB with circuit breaker protection
+  const user = await dynamodb.getItem({ userId });
+
+  if (!user) {
+    throw new NotFoundError(`User with ID ${userId} not found`);
   }
-};
+
+  return ErrorHandler.createSuccessResponse(user);
+});

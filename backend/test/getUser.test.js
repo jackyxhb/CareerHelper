@@ -21,22 +21,12 @@ describe('getUser', () => {
 
   it('should return user data when user exists', async () => {
     const mockUser = { userId: '123', name: 'John Doe' };
-    const mockSend = sandbox.stub().resolves({ Item: mockUser });
-
-    // Mock the DynamoDBDocumentClient
-    const mockDynamoDBDocumentClient = {
-      send: mockSend,
+    const mockDynamoDBUtil = {
+      getItem: sinon.stub().resolves(mockUser)
     };
 
-    const mockDynamoDBClient = sandbox.stub();
-
     handler = proxyquire('../functions/getUser', {
-      '@aws-sdk/client-dynamodb': { DynamoDBClient: mockDynamoDBClient },
-      '@aws-sdk/lib-dynamodb': {
-        DynamoDBDocumentClient: {
-          from: () => mockDynamoDBDocumentClient,
-        },
-      },
+      '../utils/dynamodb': function() { return mockDynamoDBUtil; }
     }).handler;
 
     const event = { pathParameters: { userId: '123' } };
@@ -47,28 +37,20 @@ describe('getUser', () => {
   });
 
   it('should return 404 when user does not exist', async () => {
-    const mockSend = sandbox.stub().resolves({});
-
-    // Mock the DynamoDBDocumentClient
-    const mockDynamoDBDocumentClient = {
-      send: mockSend,
+    const mockDynamoDBUtil = {
+      getItem: sinon.stub().resolves(undefined) // No user found
     };
 
-    const mockDynamoDBClient = sandbox.stub();
-
     handler = proxyquire('../functions/getUser', {
-      '@aws-sdk/client-dynamodb': { DynamoDBClient: mockDynamoDBClient },
-      '@aws-sdk/lib-dynamodb': {
-        DynamoDBDocumentClient: {
-          from: () => mockDynamoDBDocumentClient,
-        },
-      },
+      '../utils/dynamodb': function() { return mockDynamoDBUtil; }
     }).handler;
 
     const event = { pathParameters: { userId: '123' } };
     const result = await handler(event);
 
     expect(result.statusCode).to.equal(404);
-    expect(JSON.parse(result.body).message).to.equal('User not found');
+    const responseBody = JSON.parse(result.body);
+    expect(responseBody.error.type).to.equal('NotFoundError');
+    expect(responseBody.error.message).to.equal('User with ID 123 not found');
   });
 });
