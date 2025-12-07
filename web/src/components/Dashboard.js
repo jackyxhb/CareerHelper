@@ -19,10 +19,16 @@ function Dashboard() {
       const jobsData = await API.get('CareerHelperAPI', '/jobs');
       setJobs(jobsData);
 
-      const experiencesData = await API.get('CareerHelperAPI', `/experiences/${currentUser.username}`);
+      const experiencesData = await API.get(
+        'CareerHelperAPI',
+        `/experiences/${currentUser.username}`
+      );
       setExperiences(experiencesData);
 
-      const applicationsData = await API.get('CareerHelperAPI', `/applications/${currentUser.username}`);
+      const applicationsData = await API.get(
+        'CareerHelperAPI',
+        `/applications/${currentUser.username}`
+      );
       setApplications(applicationsData);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -38,7 +44,9 @@ function Dashboard() {
         <h3>Recent Jobs</h3>
         <ul>
           {jobs.slice(0, 5).map(job => (
-            <li key={job.jobId}>{job.title} at {job.company}</li>
+            <li key={job.jobId}>
+              {job.title} at {job.company}
+            </li>
           ))}
         </ul>
       </div>
@@ -47,7 +55,9 @@ function Dashboard() {
         <h3>Your Experiences</h3>
         <ul>
           {experiences.map(exp => (
-            <li key={exp.experienceId}>{exp.title} at {exp.company}</li>
+            <li key={exp.experienceId}>
+              {exp.title} at {exp.company}
+            </li>
           ))}
         </ul>
       </div>
@@ -56,7 +66,9 @@ function Dashboard() {
         <h3>Application Status</h3>
         <ul>
           {applications.map(app => (
-            <li key={app.applicationId}>Application for Job {app.jobId}: {app.status}</li>
+            <li key={app.applicationId}>
+              Application for Job {app.jobId}: {app.status}
+            </li>
           ))}
         </ul>
       </div>

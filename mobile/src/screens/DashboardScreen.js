@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button } from 'react-native';
-import { API, Auth } from 'aws-amplify';
+import { Auth } from 'aws-amplify';
 
 function DashboardScreen({ navigation }) {
   const [user, setUser] = useState(null);
@@ -22,9 +22,18 @@ function DashboardScreen({ navigation }) {
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Text>CareerHelper Dashboard</Text>
       {user && <Text>Welcome, {user.attributes.email}!</Text>}
-      <Button title="Search Jobs" onPress={() => navigation.navigate('JobSearch')} />
-      <Button title="Manage Experience" onPress={() => navigation.navigate('Experience')} />
-      <Button title="Track Applications" onPress={() => navigation.navigate('Application')} />
+      <Button
+        title="Search Jobs"
+        onPress={() => navigation.navigate('JobSearch')}
+      />
+      <Button
+        title="Manage Experience"
+        onPress={() => navigation.navigate('Experience')}
+      />
+      <Button
+        title="Track Applications"
+        onPress={() => navigation.navigate('Application')}
+      />
     </View>
   );
 }

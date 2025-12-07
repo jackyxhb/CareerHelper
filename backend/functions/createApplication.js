@@ -2,7 +2,7 @@ const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 const { v4: uuidv4 } = require('uuid');
 
-exports.handler = async (event) => {
+exports.handler = async event => {
   const { userId, jobId, status, notes } = JSON.parse(event.body);
 
   const client = new DynamoDBClient({ region: process.env.AWS_REGION });
@@ -25,7 +25,10 @@ exports.handler = async (event) => {
     await dynamodb.send(new PutCommand(params));
     return {
       statusCode: 201,
-      body: JSON.stringify({ applicationId, message: 'Application created successfully' }),
+      body: JSON.stringify({
+        applicationId,
+        message: 'Application created successfully',
+      }),
     };
   } catch (error) {
     console.error(error);

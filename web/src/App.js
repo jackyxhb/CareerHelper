@@ -20,10 +20,10 @@ Amplify.configure({
       {
         name: 'CareerHelperAPI',
         endpoint: 'your-api-gateway-url',
-        region: 'us-east-1'
-      }
-    ]
-  }
+        region: 'us-east-1',
+      },
+    ],
+  },
 });
 
 function App() {
@@ -33,9 +33,8 @@ function App() {
         <header className="App-header">
           <h1>CareerHelper</h1>
           <nav>
-            <a href="/">Dashboard</a> | 
-            <a href="/jobs">Jobs</a> | 
-            <a href="/experiences">Experiences</a> | 
+            <a href="/">Dashboard</a> |<a href="/jobs">Jobs</a> |
+            <a href="/experiences">Experiences</a> |
             <a href="/applications">Applications</a>
           </nav>
         </header>

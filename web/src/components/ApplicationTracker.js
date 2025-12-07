@@ -12,7 +12,10 @@ function ApplicationTracker() {
   const fetchData = async () => {
     try {
       const currentUser = await Auth.currentAuthenticatedUser();
-      const applicationsData = await API.get('CareerHelperAPI', `/applications/${currentUser.username}`);
+      const applicationsData = await API.get(
+        'CareerHelperAPI',
+        `/applications/${currentUser.username}`
+      );
       setApplications(applicationsData);
 
       const jobsData = await API.get('CareerHelperAPI', '/jobs');
@@ -22,7 +25,7 @@ function ApplicationTracker() {
     }
   };
 
-  const getJobTitle = (jobId) => {
+  const getJobTitle = jobId => {
     const job = jobs.find(j => j.jobId === jobId);
     return job ? job.title : 'Unknown Job';
   };

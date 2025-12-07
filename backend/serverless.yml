@@ -12,11 +12,21 @@ provider:
     JOBS_TABLE: ${self:custom.jobsTable}
     EXPERIENCES_TABLE: ${self:custom.experiencesTable}
     APPLICATIONS_TABLE: ${self:custom.applicationsTable}
+    JWT_SECRET: ${ssm:/careerhelper/${self:provider.stage}/jwt-secret}
+    API_KEY: ${ssm:/careerhelper/${self:provider.stage}/api-key}
   iamRoleStatements:
     - Effect: Allow
       Action:
         - dynamodb:*
       Resource: "*"
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+      Resource: "arn:aws:secretsmanager:${self:provider.region}:*:secret:careerhelper/${self:provider.stage}/*"
+    - Effect: Allow
+      Action:
+        - ssm:GetParameter
+      Resource: "arn:aws:ssm:${self:provider.region}:*:parameter/careerhelper/${self:provider.stage}/*"
 
 custom:
   usersTable: !Ref UsersTable
@@ -80,6 +90,13 @@ functions:
       - httpApi:
           path: /applications
           method: post
+
+  health:
+    handler: functions/health.handler
+    events:
+      - httpApi:
+          path: /health
+          method: get
 
 resources:
   Resources:

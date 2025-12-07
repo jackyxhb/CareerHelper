@@ -22,21 +22,21 @@ describe('getUser', () => {
   it('should return user data when user exists', async () => {
     const mockUser = { userId: '123', name: 'John Doe' };
     const mockSend = sandbox.stub().resolves({ Item: mockUser });
-    
+
     // Mock the DynamoDBDocumentClient
     const mockDynamoDBDocumentClient = {
-      send: mockSend
+      send: mockSend,
     };
-    
+
     const mockDynamoDBClient = sandbox.stub();
-    
+
     handler = proxyquire('../functions/getUser', {
       '@aws-sdk/client-dynamodb': { DynamoDBClient: mockDynamoDBClient },
       '@aws-sdk/lib-dynamodb': {
         DynamoDBDocumentClient: {
-          from: () => mockDynamoDBDocumentClient
-        }
-      }
+          from: () => mockDynamoDBDocumentClient,
+        },
+      },
     }).handler;
 
     const event = { pathParameters: { userId: '123' } };
@@ -48,21 +48,21 @@ describe('getUser', () => {
 
   it('should return 404 when user does not exist', async () => {
     const mockSend = sandbox.stub().resolves({});
-    
+
     // Mock the DynamoDBDocumentClient
     const mockDynamoDBDocumentClient = {
-      send: mockSend
+      send: mockSend,
     };
-    
+
     const mockDynamoDBClient = sandbox.stub();
-    
+
     handler = proxyquire('../functions/getUser', {
       '@aws-sdk/client-dynamodb': { DynamoDBClient: mockDynamoDBClient },
       '@aws-sdk/lib-dynamodb': {
         DynamoDBDocumentClient: {
-          from: () => mockDynamoDBDocumentClient
-        }
-      }
+          from: () => mockDynamoDBDocumentClient,
+        },
+      },
     }).handler;
 
     const event = { pathParameters: { userId: '123' } };

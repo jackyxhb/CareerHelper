@@ -12,7 +12,10 @@ function ApplicationScreen() {
   const fetchApplications = async () => {
     try {
       const currentUser = await Auth.currentAuthenticatedUser();
-      const applicationsData = await API.get('CareerHelperAPI', `/applications/${currentUser.username}`);
+      const applicationsData = await API.get(
+        'CareerHelperAPI',
+        `/applications/${currentUser.username}`
+      );
       setApplications(applicationsData);
     } catch (error) {
       console.error('Error fetching applications:', error);
@@ -30,11 +33,13 @@ function ApplicationScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Text style={{ fontSize: 20, textAlign: 'center', margin: 10 }}>Application Tracker</Text>
+      <Text style={{ fontSize: 20, textAlign: 'center', margin: 10 }}>
+        Application Tracker
+      </Text>
       <FlatList
         data={applications}
         renderItem={renderApplication}
-        keyExtractor={(item) => item.applicationId}
+        keyExtractor={item => item.applicationId}
       />
     </View>
   );

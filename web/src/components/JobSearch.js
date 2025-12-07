@@ -18,9 +18,10 @@ function JobSearch() {
     }
   };
 
-  const filteredJobs = jobs.filter(job =>
-    job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.company.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredJobs = jobs.filter(
+    job =>
+      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.company.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -30,13 +31,15 @@ function JobSearch() {
         type="text"
         placeholder="Search jobs..."
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        onChange={e => setSearchTerm(e.target.value)}
       />
       <ul>
         {filteredJobs.map(job => (
           <li key={job.jobId}>
             <h3>{job.title}</h3>
-            <p>{job.company} - {job.location}</p>
+            <p>
+              {job.company} - {job.location}
+            </p>
             <p>{job.description}</p>
             <button>Apply</button>
           </li>

@@ -20,10 +20,10 @@ Amplify.configure({
       {
         name: 'CareerHelperAPI',
         endpoint: 'your-api-gateway-url',
-        region: 'us-east-1'
-      }
-    ]
-  }
+        region: 'us-east-1',
+      },
+    ],
+  },
 });
 
 const Stack = createStackNavigator();

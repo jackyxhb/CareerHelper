@@ -21,19 +21,28 @@ function JobSearchScreen() {
   const renderJob = ({ item }) => (
     <View style={{ padding: 10, borderBottomWidth: 1 }}>
       <Text style={{ fontWeight: 'bold' }}>{item.title}</Text>
-      <Text>{item.company} - {item.location}</Text>
+      <Text>
+        {item.company} - {item.location}
+      </Text>
       <Text>{item.description}</Text>
-      <Button title="Apply" onPress={() => {/* Handle apply */}} />
+      <Button
+        title="Apply"
+        onPress={() => {
+          /* Handle apply */
+        }}
+      />
     </View>
   );
 
   return (
     <View style={{ flex: 1 }}>
-      <Text style={{ fontSize: 20, textAlign: 'center', margin: 10 }}>Job Search</Text>
+      <Text style={{ fontSize: 20, textAlign: 'center', margin: 10 }}>
+        Job Search
+      </Text>
       <FlatList
         data={jobs}
         renderItem={renderJob}
-        keyExtractor={(item) => item.jobId}
+        keyExtractor={item => item.jobId}
       />
     </View>
   );

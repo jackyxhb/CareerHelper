@@ -1,7 +1,10 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, ScanCommand } = require('@aws-sdk/lib-dynamodb');
+const {
+  DynamoDBDocumentClient,
+  ScanCommand,
+} = require('@aws-sdk/lib-dynamodb');
 
-exports.handler = async (event) => {
+exports.handler = async () => {
   const client = new DynamoDBClient({ region: process.env.AWS_REGION });
   const dynamodb = DynamoDBDocumentClient.from(client);
 

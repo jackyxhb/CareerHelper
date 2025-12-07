@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+coverage/
+*.min.js
+*.config.js
+!.eslintrc.js
+package-lock.json
+yarn.lock
+.DS_Store
+.env*
+*.log
+.serverless/
+cdk.out/
+amplify-gradle-config.json
+amplifytools.xcconfig

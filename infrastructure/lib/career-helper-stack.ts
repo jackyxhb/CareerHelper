@@ -22,10 +22,14 @@ export class CareerHelperStack extends cdk.Stack {
     });
 
     // Cognito User Pool Client
-    const userPoolClient = new cognito.UserPoolClient(this, 'CareerHelperUserPoolClient', {
-      userPool,
-      generateSecret: false,
-    });
+    const userPoolClient = new cognito.UserPoolClient(
+      this,
+      'CareerHelperUserPoolClient',
+      {
+        userPool,
+        generateSecret: false,
+      }
+    );
 
     // DynamoDB Tables
     const usersTable = new dynamodb.Table(this, 'UsersTable', {
@@ -61,14 +65,40 @@ export class CareerHelperStack extends cdk.Stack {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
 
-    lambdaRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'));
-    lambdaRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonDynamoDBFullAccess'));
-    lambdaRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess'));
-    lambdaRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonCognitoPowerUser'));
+    lambdaRole.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName(
+        'service-role/AWSLambdaBasicExecutionRole'
+      )
+    );
+    lambdaRole.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonDynamoDBFullAccess')
+    );
+    lambdaRole.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess')
+    );
+    lambdaRole.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonCognitoPowerUser')
+    );
 
     // Outputs
     new cdk.CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
-    new cdk.CfnOutput(this, 'UserPoolClientId', { value: userPoolClient.userPoolClientId });
-    new cdk.CfnOutput(this, 'UploadsBucketName', { value: uploadsBucket.bucketName });
+    new cdk.CfnOutput(this, 'UserPoolClientId', {
+      value: userPoolClient.userPoolClientId,
+    });
+    new cdk.CfnOutput(this, 'UploadsBucketName', {
+      value: uploadsBucket.bucketName,
+    });
+    new cdk.CfnOutput(this, 'UsersTableName', {
+      value: usersTable.tableName,
+    });
+    new cdk.CfnOutput(this, 'JobsTableName', {
+      value: jobsTable.tableName,
+    });
+    new cdk.CfnOutput(this, 'ExperiencesTableName', {
+      value: experiencesTable.tableName,
+    });
+    new cdk.CfnOutput(this, 'ApplicationsTableName', {
+      value: applicationsTable.tableName,
+    });
   }
 }

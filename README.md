@@ -1,6 +1,8 @@
 # CareerHelper
 
 [![CI/CD](https://github.com/jackyxhb/CareerHelper/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/jackyxhb/CareerHelper/actions/workflows/ci-cd.yml)
+[![Test Coverage](https://img.shields.io/codecov/c/github/jackyxhb/CareerHelper)](https://codecov.io/gh/jackyxhb/CareerHelper)
+[![Tests](https://img.shields.io/github/actions/workflow/status/jackyxhb/CareerHelper/test.yml?label=tests)](https://github.com/jackyxhb/CareerHelper/actions/workflows/test.yml)
 [![Release](https://img.shields.io/github/v/release/jackyxhb/CareerHelper)](https://github.com/jackyxhb/CareerHelper/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
@@ -104,6 +106,18 @@ The platform uses four primary data models with user-scoped partitioning:
 - **Jobs**: Job postings with company, location, salary details
 - **Experiences**: Work history, skills, education (partitioned by userId)
 - **Applications**: Job applications with status tracking (partitioned by userId)
+
+### **Security & Secrets Management**
+
+The platform implements enterprise-grade security practices:
+
+- **AWS Secrets Manager**: Sensitive credentials and API keys
+- **SSM Parameter Store**: Configuration parameters with encryption
+- **IAM Roles**: Least-privilege access for Lambda functions
+- **DynamoDB Encryption**: Server-side encryption for all data
+- **HTTPS Only**: All API endpoints secured with TLS
+
+Secrets are managed through automated scripts in [`scripts/setup-secrets.sh`](scripts/setup-secrets.sh). See [`SECRETS-README.md`](SECRETS-README.md) for detailed setup instructions.
 
 ## 🚀 Quick Start
 
@@ -229,6 +243,7 @@ Complete API documentation is available in [`docs/api.md`](docs/api.md).
 
 ### Key Endpoints
 
+- `GET /health` - Health check endpoint for monitoring
 - `GET /users/{userId}` - Get user profile
 - `POST /users` - Create new user
 - `GET /jobs` - List all jobs

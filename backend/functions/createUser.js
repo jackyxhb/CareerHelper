@@ -1,7 +1,7 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 
-exports.handler = async (event) => {
+exports.handler = async event => {
   const { userId, email, name } = JSON.parse(event.body);
 
   const client = new DynamoDBClient({ region: process.env.AWS_REGION });
