@@ -17,6 +17,7 @@ A comprehensive career management platform built as a monorepo with serverless A
 ✅ **Testing**: Unit tests with AWS SDK v3 mocking  
 ✅ **CI/CD**: GitHub Actions workflows for automated deployment  
 ✅ **Documentation**: API specs and development guidelines  
+✅ **Error Handling**: Enterprise-grade resilience with circuit breakers and structured logging  
 ✅ **Release**: v0.0.1 published and production-ready  
 
 **🎉 Officially released as v0.0.1 - Ready for production deployment!**
@@ -77,6 +78,13 @@ git checkout v0.0.1
 - **Learning Resources**: Curated courses and certifications
 - **Network Building**: Professional contact management
 
+### **Enterprise Resilience**
+- **Circuit Breaker Pattern**: Automatic failure detection and recovery for database operations
+- **Structured Logging**: JSON-formatted logs with request tracking and performance metrics
+- **Error Handling**: Consistent error responses with detailed error classification
+- **Input Validation**: Schema-based validation with comprehensive error messages
+- **Retry Logic**: Adaptive retry strategies for AWS service calls
+
 ## 🏗️ Architecture
 
 ### **Backend (Serverless AWS)**
@@ -101,6 +109,10 @@ git checkout v0.0.1
 ### **Shared Utilities**
 - **TypeScript**: Strongly typed interfaces and utilities
 - **Common Logic**: Reusable business logic across platforms
+- **Logger**: Structured logging utility with JSON formatting
+- **ErrorHandler**: Consistent error response formatting
+- **RequestHandler**: Input validation and request processing
+- **DynamoDBUtil**: Database operations with circuit breaker protection
 
 ### **Data Models**
 
@@ -217,6 +229,7 @@ CareerHelper/
 ├── .github/                 # GitHub Actions CI/CD workflows
 ├── backend/                 # Serverless AWS Lambda functions
 │   ├── functions/          # Lambda function handlers
+│   ├── utils/              # Utility classes (Logger, ErrorHandler, DynamoDBUtil, RequestHandler)
 │   ├── test/               # Unit tests
 │   └── serverless.yml      # Serverless Framework config
 ├── web/                    # React web application
@@ -282,7 +295,9 @@ yarn android:release
 
 ## 🧪 Testing Strategy
 
-- **Unit Tests**: Lambda functions with mocked AWS services
+- **Unit Tests**: Lambda functions with mocked AWS services and utility classes
+- **Circuit Breaker Tests**: Fault tolerance testing with failure simulation
+- **Error Handling Tests**: Comprehensive error response validation
 - **Integration Tests**: API endpoint testing with real AWS services
 - **E2E Tests**: Full user workflow testing
 - **Performance Tests**: Load testing for scalability validation
@@ -350,6 +365,14 @@ We welcome contributions! Please see our [Development Instructions](instructions
 - 🏗️ **Full Architecture**: Serverless backend, web app, mobile app, infrastructure
 - ✅ **Production Ready**: Comprehensive testing, CI/CD, documentation
 - 🚀 **Deployment Ready**: All components configured for AWS deployment
+
+#### Recent Enhancements (December 8, 2025)
+- 🛡️ **Error Handling & Resilience**: Enterprise-grade fault tolerance implementation
+- 🔄 **Circuit Breaker Pattern**: Automatic failure detection and recovery for DynamoDB operations
+- 📊 **Structured Logging**: JSON-formatted logs with request tracking and performance metrics
+- ✅ **Input Validation**: Schema-based validation with comprehensive error messages
+- 🔄 **Retry Logic**: Adaptive retry strategies for AWS SDK calls
+- 🏗️ **Utility Classes**: Logger, ErrorHandler, RequestHandler, and DynamoDBUtil for consistent operations
 
 See [Releases](https://github.com/jackyxhb/CareerHelper/releases) for full changelog.
 
