@@ -8,6 +8,7 @@ import Dashboard from './components/Dashboard';
 import JobSearch from './components/JobSearch';
 import ExperienceManager from './components/ExperienceManager';
 import ApplicationTracker from './components/ApplicationTracker';
+import AnalyticsPage from './components/AnalyticsPage';
 import { logError, logInfo } from './utils/logger';
 
 Amplify.configure({
@@ -125,6 +126,8 @@ function App({ user, signOut }) {
             <Link to="/experiences">Experiences</Link>
             {' | '}
             <Link to="/applications">Applications</Link>
+            {' | '}
+            <Link to="/analytics">Analytics</Link>
           </nav>
         </header>
         <main className="App-main">
@@ -134,6 +137,7 @@ function App({ user, signOut }) {
             <Route path="/jobs" element={<JobSearch user={user} />} />
             <Route path="/experiences" element={<ExperienceManager user={user} />} />
             <Route path="/applications" element={<ApplicationTracker user={user} />} />
+            <Route path="/analytics" element={<AnalyticsPage user={user} />} />
           </Routes>
         </main>
       </div>

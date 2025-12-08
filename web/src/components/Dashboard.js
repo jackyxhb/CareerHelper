@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { API } from 'aws-amplify';
 import { logError, logInfo } from '../utils/logger';
+import DashboardInsights from './DashboardInsights';
 
 function Dashboard({ user, profile }) {
   const [jobs, setJobs] = useState([]);
   const [experiences, setExperiences] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
+  const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState(null);
 
   useEffect(() => {
     if (!user?.username) {
       setJobs([]);
       setExperiences([]);
       setApplications([]);
+      setAnalytics(null);
       return;
     }
 
@@ -46,6 +51,29 @@ function Dashboard({ user, profile }) {
     };
 
     fetchUserData(user.username);
+
+    const loadAnalytics = async () => {
+      setIsAnalyticsLoading(true);
+      setAnalyticsError(null);
+
+      try {
+        const analyticsData = await API.get('CareerHelperAPI', '/analytics');
+        setAnalytics(analyticsData || null);
+        const totals = analyticsData?.summary || {};
+        logInfo('Analytics data loaded for dashboard', {
+          totalApplications: totals.totalApplications || 0,
+          interviewRate: totals.interviewRate || 0,
+          offerRate: totals.offerRate || 0,
+        });
+      } catch (error) {
+        setAnalyticsError('Unable to load analytics right now.');
+        logError('Failed to fetch analytics data', error);
+      } finally {
+        setIsAnalyticsLoading(false);
+      }
+    };
+
+    loadAnalytics();
   }, [user?.username]);
 
   return (
@@ -87,6 +115,12 @@ function Dashboard({ user, profile }) {
           ))}
         </ul>
       </div>
+
+      <DashboardInsights
+        analytics={analytics}
+        isLoading={isAnalyticsLoading}
+        error={analyticsError}
+      />
     </div>
   );
 }

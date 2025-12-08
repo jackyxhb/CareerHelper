@@ -25,7 +25,7 @@ describe('ApplicationTracker', () => {
       ])
       .mockResolvedValueOnce([{ jobId: 'job-1', title: 'Product Designer' }]);
 
-    render(<ApplicationTracker />);
+    render(<ApplicationTracker user={{ username: 'user-1' }} />);
 
     expect(screen.getByText('Application Tracker')).toBeInTheDocument();
 
@@ -38,7 +38,7 @@ describe('ApplicationTracker', () => {
   it('handles empty responses gracefully', async () => {
     API.get.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
-    render(<ApplicationTracker />);
+    render(<ApplicationTracker user={{ username: 'user-1' }} />);
 
     await waitFor(() => {
       expect(screen.getByRole('list')).toBeEmptyDOMElement();

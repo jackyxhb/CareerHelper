@@ -84,6 +84,13 @@ functions:
           path: /jobs/search
           method: get
 
+  getAnalytics:
+    handler: functions/getAnalytics.handler
+    events:
+      - httpApi:
+          path: /analytics
+          method: get
+
   createJob:
     handler: functions/createJob.handler
     events:
