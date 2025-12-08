@@ -11,3 +11,53 @@ code {
   font-family:
     source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
+
+.App {
+  min-height: 100vh;
+  background-color: #f5f7fb;
+  color: #1f2933;
+}
+
+.App-header {
+  background-color: #111827;
+  padding: 1rem 2rem;
+  color: #f9fafb;
+}
+
+.App-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.App-header nav {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.App-header nav a {
+  color: #60a5fa;
+  margin: 0 0.75rem;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.App-header nav a:hover {
+  text-decoration: underline;
+}
+
+.sign-out-btn {
+  background-color: #ef4444;
+  border: none;
+  color: #f9fafb;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.sign-out-btn:hover {
+  background-color: #dc2626;
+}
