@@ -1,10 +1,18 @@
-const AWS = require('aws-sdk');
+const {
+  SSMClient,
+  GetParameterCommand,
+} = require('@aws-sdk/client-ssm');
+const {
+  SecretsManagerClient,
+  GetSecretValueCommand,
+} = require('@aws-sdk/client-secrets-manager');
 const Logger = require('./logger');
 
 class SecretsManager {
   constructor() {
-    this.ssm = new AWS.SSM();
-    this.secretsManager = new AWS.SecretsManager();
+    const region = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'us-east-1';
+    this.ssm = new SSMClient({ region });
+    this.secretsManager = new SecretsManagerClient({ region });
     this.cache = new Map();
     this.logger = new Logger({ component: 'SecretsManager' });
   }
@@ -21,12 +29,12 @@ class SecretsManager {
     }
 
     try {
-      const response = await this.ssm
-        .getParameter({
+      const response = await this.ssm.send(
+        new GetParameterCommand({
           Name: name,
           WithDecryption: true,
         })
-        .promise();
+      );
 
       const value = response.Parameter.Value;
       this.cache.set(cacheKey, value);
@@ -49,11 +57,11 @@ class SecretsManager {
     }
 
     try {
-      const response = await this.secretsManager
-        .getSecretValue({
+      const response = await this.secretsManager.send(
+        new GetSecretValueCommand({
           SecretId: secretId,
         })
-        .promise();
+      );
 
       const secretString = response.SecretString;
       const value = JSON.parse(secretString);
@@ -82,6 +90,16 @@ class SecretsManager {
    */
   async getAPIKey(stage = process.env.STAGE || 'dev') {
     const paramName = `/careerhelper/${stage}/api-key`;
+    return this.getSSMParameter(paramName);
+  }
+
+  /**
+   * Get external job search API key for the current stage
+   * @param {string} stage
+   * @returns {Promise<string>}
+   */
+  async getJobSearchApiKey(stage = process.env.STAGE || 'dev') {
+    const paramName = `/careerhelper/${stage}/job-search-api-key`;
     return this.getSSMParameter(paramName);
   }
 

@@ -1,21 +1,31 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { API } from 'aws-amplify';
 import { logError, logInfo } from '../utils/logger';
 
 function JobSearch({ user }) {
-  const [jobs, setJobs] = useState([]);
+  const [internalJobs, setInternalJobs] = useState([]);
+  const [externalJobs, setExternalJobs] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [locationTerm, setLocationTerm] = useState('');
   const [submittingJobId, setSubmittingJobId] = useState(null);
   const [feedback, setFeedback] = useState(null);
+  const [externalError, setExternalError] = useState(null);
+  const [isExternalLoading, setIsExternalLoading] = useState(false);
+
+  const externalCacheRef = useRef(new Map());
 
   const userId = user?.username;
 
   const fetchJobs = useCallback(async () => {
     try {
       const jobsData = await API.get('CareerHelperAPI', '/jobs');
-      setJobs(jobsData || []);
+      const normalized = (jobsData || []).map(job => ({
+        ...job,
+        source: 'Internal',
+      }));
+      setInternalJobs(normalized);
       logInfo('Jobs fetched for search view', {
-        items: jobsData?.length || 0,
+        items: normalized.length,
       });
     } catch (error) {
       logError('Failed to fetch jobs on web', error);
@@ -36,6 +46,8 @@ function JobSearch({ user }) {
     setFeedback(null);
 
     try {
+      const isExternal = job.source && job.source !== 'Internal';
+
       await API.post('CareerHelperAPI', '/applications', {
         body: {
           userId,
@@ -45,10 +57,15 @@ function JobSearch({ user }) {
         },
       });
 
-      setFeedback(`Application submitted for ${job.title}.`);
+      setFeedback(
+        isExternal
+          ? `Saved ${job.title} to your tracker.`
+          : `Application submitted for ${job.title}.`
+      );
       logInfo('Application submitted from job search', {
         jobId: job.jobId,
         userId,
+        source: job.source || 'Internal',
       });
     } catch (error) {
       setFeedback('Could not submit application. Please try again.');
@@ -61,16 +78,82 @@ function JobSearch({ user }) {
     }
   };
 
-  const filteredJobs = useMemo(
-    () =>
-      jobs.filter(job => {
-        const term = searchTerm.toLowerCase();
-        return (
-          job.title.toLowerCase().includes(term) ||
-          job.company.toLowerCase().includes(term)
-        );
-      }),
-    [jobs, searchTerm]
+  useEffect(() => {
+    const trimmedQuery = searchTerm.trim();
+    const trimmedLocation = locationTerm.trim();
+
+    if (trimmedQuery.length < 3) {
+      setExternalJobs([]);
+      setExternalError(null);
+      return;
+    }
+
+    const cacheKey = `${trimmedQuery.toLowerCase()}|${trimmedLocation.toLowerCase()}`;
+    const cached = externalCacheRef.current.get(cacheKey);
+    if (cached) {
+      setExternalJobs(cached);
+      setExternalError(null);
+      logInfo('External job search cache hit', {
+        query: trimmedQuery,
+        location: trimmedLocation || undefined,
+        items: cached.length,
+      });
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setIsExternalLoading(true);
+      setExternalError(null);
+
+      try {
+        const result = await API.get('CareerHelperAPI', '/jobs/search', {
+          queryStringParameters: {
+            query: trimmedQuery,
+            ...(trimmedLocation ? { location: trimmedLocation } : {}),
+          },
+        });
+
+        const jobsFromSearch = (result?.jobs || []).map(job => ({
+          ...job,
+          source: job.source || 'JSearch',
+        }));
+
+        externalCacheRef.current.set(cacheKey, jobsFromSearch);
+        setExternalJobs(jobsFromSearch);
+        logInfo('External job search completed', {
+          provider: result?.provider,
+          query: trimmedQuery,
+          location: trimmedLocation || undefined,
+          items: jobsFromSearch.length,
+          cached: false,
+        });
+      } catch (error) {
+        setExternalError('Unable to fetch external listings right now.');
+        logError('Failed to fetch external jobs', error, {
+          query: trimmedQuery,
+          location: trimmedLocation || undefined,
+        });
+      } finally {
+        setIsExternalLoading(false);
+      }
+    }, 400);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [locationTerm, searchTerm]);
+
+  const filteredInternalJobs = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+    return internalJobs.filter(job =>
+      job.title.toLowerCase().includes(term) ||
+      job.company.toLowerCase().includes(term)
+    );
+  }, [internalJobs, searchTerm]);
+
+  const combinedJobs = useMemo(
+    () => [...filteredInternalJobs, ...externalJobs],
+    [filteredInternalJobs, externalJobs]
   );
 
   return (
@@ -83,20 +166,40 @@ function JobSearch({ user }) {
         value={searchTerm}
         onChange={e => setSearchTerm(e.target.value)}
       />
+      <input
+        type="text"
+        placeholder="Location (optional)"
+        value={locationTerm}
+        onChange={e => setLocationTerm(e.target.value)}
+      />
+      {isExternalLoading && <p>Searching external listings…</p>}
+      {externalError && <p>{externalError}</p>}
       <ul>
-        {filteredJobs.map(job => (
+        {combinedJobs.map(job => (
           <li key={job.jobId}>
             <h3>{job.title}</h3>
             <p>
               {job.company} - {job.location}
             </p>
             <p>{job.description}</p>
+            <p>Source: {job.source || 'Internal'}</p>
+            {job.externalUrl && (
+              <p>
+                <a href={job.externalUrl} target="_blank" rel="noreferrer">
+                  View Listing
+                </a>
+              </p>
+            )}
             <button
               type="button"
               onClick={() => handleApply(job)}
               disabled={!userId || submittingJobId === job.jobId}
             >
-              {submittingJobId === job.jobId ? 'Submitting…' : 'Apply'}
+              {submittingJobId === job.jobId
+                ? 'Submitting…'
+                : job.source === 'Internal'
+                  ? 'Apply'
+                  : 'Save to Tracker'}
             </button>
           </li>
         ))}

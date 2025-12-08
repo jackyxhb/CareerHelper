@@ -15,6 +15,7 @@ echo "Setting up secrets for CareerHelper (${STAGE}) in region ${REGION}"
 # Generate random secrets
 JWT_SECRET=$(openssl rand -hex 32)
 API_KEY=$(openssl rand -hex 16)
+JOB_SEARCH_API_KEY=${JOB_SEARCH_API_KEY:-$(openssl rand -hex 16)}
 
 echo "Generated JWT_SECRET: ${JWT_SECRET}"
 echo "Generated API_KEY: ${API_KEY}"
@@ -34,6 +35,14 @@ aws ssm put-parameter \
   --value "${API_KEY}" \
   --type "SecureString" \
   --description "API key for CareerHelper external integrations" \
+  --region "${REGION}" \
+  --overwrite
+
+aws ssm put-parameter \
+  --name "/careerhelper/${STAGE}/job-search-api-key" \
+  --value "${JOB_SEARCH_API_KEY}" \
+  --type "SecureString" \
+  --description "External job search API key for CareerHelper" \
   --region "${REGION}" \
   --overwrite
 
@@ -64,6 +73,7 @@ echo ""
 echo "Summary:"
 echo "- JWT Secret SSM Parameter: /careerhelper/${STAGE}/jwt-secret"
 echo "- API Key SSM Parameter: /careerhelper/${STAGE}/api-key"
+echo "- Job Search API Key SSM Parameter: /careerhelper/${STAGE}/job-search-api-key"
 echo "- Database Secret: ${SECRET_ARN}"
 echo ""
 echo "Make sure to update your application code to retrieve these values at runtime instead of using environment variables."

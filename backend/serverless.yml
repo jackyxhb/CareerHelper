@@ -26,12 +26,15 @@ provider:
         - X-Api-Key
       allowCredentials: false
   environment:
+    STAGE: ${self:provider.stage}
     USERS_TABLE: ${self:custom.usersTable}
     JOBS_TABLE: ${self:custom.jobsTable}
     EXPERIENCES_TABLE: ${self:custom.experiencesTable}
     APPLICATIONS_TABLE: ${self:custom.applicationsTable}
     JWT_SECRET: ${ssm:/careerhelper/${self:provider.stage}/jwt-secret}
     API_KEY: ${ssm:/careerhelper/${self:provider.stage}/api-key}
+    JOB_SEARCH_API_URL: https://jsearch.p.rapidapi.com/search
+    JOB_SEARCH_API_HOST: jsearch.p.rapidapi.com
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -72,6 +75,13 @@ functions:
     events:
       - httpApi:
           path: /jobs
+          method: get
+
+  searchJobs:
+    handler: functions/searchJobs.handler
+    events:
+      - httpApi:
+          path: /jobs/search
           method: get
 
   createJob:
