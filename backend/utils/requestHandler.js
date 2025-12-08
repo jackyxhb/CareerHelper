@@ -278,14 +278,34 @@ const ValidationSchemas = {
       required: true,
       validate: value => {
         const validStatuses = [
-          'applied',
-          'interviewing',
-          'offered',
-          'rejected',
-          'withdrawn',
+          'APPLIED',
+          'INTERVIEWING',
+          'OFFERED',
+          'REJECTED',
+          'WITHDRAWN',
         ];
         return validStatuses.includes(value) ? null : 'Invalid status value';
       },
+    },
+  },
+
+  resumeUpload: {
+    fileName: {
+      type: 'string',
+      required: true,
+      minLength: 1,
+      maxLength: 255,
+    },
+    contentType: {
+      type: 'string',
+      required: true,
+      minLength: 3,
+      maxLength: 120,
+    },
+    fileSize: {
+      type: 'number',
+      min: 1,
+      max: 15 * 1024 * 1024,
     },
   },
 };

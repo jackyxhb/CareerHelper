@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TextInput, Button } from 'react-native';
-import { API, Auth } from 'aws-amplify';
+import { Auth } from 'aws-amplify';
+import { DataStore } from '@aws-amplify/datastore';
+import { Experience } from 'careerhelper-shared';
+import {
+  createLocalExperience,
+  syncExperiencesFromApi,
+} from '../services/dataSync';
+import SyncStatusBanner from '../components/SyncStatusBanner';
 import { logError, logInfo } from '../utils/logger';
 
 function ExperienceScreen() {
@@ -8,46 +15,67 @@ function ExperienceScreen() {
   const [title, setTitle] = useState('');
   const [company, setCompany] = useState('');
   const [description, setDescription] = useState('');
+  const [userId, setUserId] = useState(null);
+  const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
-    fetchExperiences();
+    let subscription;
+    let mounted = true;
+
+    const bootstrap = async () => {
+      try {
+        const currentUser = await Auth.currentAuthenticatedUser();
+        if (!mounted) {
+          return;
+        }
+        setUserId(currentUser.username);
+
+        subscription = DataStore.observeQuery(Experience, exp =>
+          exp.userId('eq', currentUser.username)
+        ).subscribe(snapshot => {
+          if (mounted) {
+            setExperiences(snapshot.items);
+          }
+        });
+
+        await syncExperiencesFromApi(currentUser.username);
+      } catch (error) {
+        logError('Failed to bootstrap experiences', error);
+      }
+    };
+
+    bootstrap();
+
+    return () => {
+      mounted = false;
+      subscription?.unsubscribe();
+    };
   }, []);
 
-  const fetchExperiences = async () => {
-    try {
-      const currentUser = await Auth.currentAuthenticatedUser();
-      const experiencesData = await API.get(
-        'CareerHelperAPI',
-        `/experiences/${currentUser.username}`
-      );
-      setExperiences(experiencesData);
-    } catch (error) {
-      logError('Failed to fetch experiences', error);
-    }
-  };
-
   const addExperience = async () => {
+    if (!userId) {
+      return;
+    }
+
+    setFeedback(null);
     try {
-      const currentUser = await Auth.currentAuthenticatedUser();
-      await API.post('CareerHelperAPI', '/experiences', {
-        body: {
-          userId: currentUser.username,
-          title,
-          company,
-          startDate: new Date().toISOString(),
-          description,
-        },
+      await createLocalExperience(userId, {
+        title,
+        company,
+        startDate: new Date().toISOString(),
+        description,
       });
       setTitle('');
       setCompany('');
       setDescription('');
-      fetchExperiences();
-      logInfo('Experience added successfully');
+      setFeedback('Saved locally. We will sync it when online.');
+      logInfo('Experience queued locally for sync');
     } catch (error) {
       logError('Failed to add experience', error, {
         title,
         company,
       });
+      setFeedback('Could not save at the moment. Please try again later.');
     }
   };
 
@@ -56,12 +84,17 @@ function ExperienceScreen() {
       <Text style={{ fontWeight: 'bold' }}>{item.title}</Text>
       <Text>{item.company}</Text>
       <Text>{item.description}</Text>
+      {item.pendingSync && (
+        <Text style={{ color: '#b45309' }}>Waiting to sync…</Text>
+      )}
     </View>
   );
 
   return (
     <View style={{ flex: 1, padding: 10 }}>
+      <SyncStatusBanner />
       <Text style={{ fontSize: 20, marginBottom: 10 }}>Experience Manager</Text>
+      {feedback && <Text style={{ marginBottom: 10 }}>{feedback}</Text>}
       <TextInput
         placeholder="Job Title"
         value={title}

@@ -8,6 +8,9 @@
     "build": "tsc",
     "test": "echo 'No tests yet'"
   },
+  "dependencies": {
+    "@aws-amplify/datastore": "^4.7.18"
+  },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"

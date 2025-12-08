@@ -3,6 +3,7 @@ export interface User {
   email: string;
   name: string;
   createdAt: string;
+  resumeKey?: string;
 }
 
 export interface Job {
@@ -23,13 +24,19 @@ export interface Experience {
   startDate: string;
   endDate?: string;
   description: string;
+  pendingSync?: boolean;
+  lastSyncedAt?: string;
 }
 
 export interface Application {
   userId: string;
   applicationId: string;
   jobId: string;
-  status: 'applied' | 'interviewed' | 'offered' | 'rejected';
+  status: 'APPLIED' | 'INTERVIEWING' | 'OFFERED' | 'REJECTED' | 'WITHDRAWN';
   appliedAt: string;
   notes?: string;
+  pendingSync?: boolean;
+  lastSyncedAt?: string;
 }
+
+export * from './models';
