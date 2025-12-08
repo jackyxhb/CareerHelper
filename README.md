@@ -11,12 +11,13 @@ A comprehensive career management platform built as a monorepo with serverless A
 ## 📊 Project Status
 
 ✅ **Backend**: Complete serverless AWS implementation with 8 Lambda functions  
-✅ **Web App**: Full React application deployed to AWS S3 (auth disabled for dev)  
-✅ **Mobile App**: React Native app with cross-platform support  
-✅ **Infrastructure**: AWS CDK stack with DynamoDB, Cognito, and S3  
+✅ **Web App**: Full React application deployed to AWS S3 with Cognito auth  
+✅ **Mobile App**: React Native app with cross-platform support and offline sync  
+✅ **Infrastructure**: AWS CDK stack with DynamoDB, Cognito, S3 + configured CORS  
 ✅ **Testing**: Unit tests with AWS SDK v3 mocking  
 ✅ **CI/CD**: GitHub Actions workflows for automated deployment  
 ✅ **Documentation**: API specs and development guidelines  
+✅ **Resume Uploads**: Cognito-protected signed URLs backed by DynamoDB metadata  
 ✅ **Error Handling**: Enterprise-grade resilience with circuit breakers and structured logging  
 ✅ **Release**: v0.0.1 published and production-ready  
 
@@ -59,6 +60,7 @@ git checkout v0.0.1
 - **Personalized Recommendations**: AI-powered job matching based on experience and preferences
 - **Save & Track**: Bookmark interesting positions and monitor application status
 - **Company Insights**: Research companies with salary data and employee reviews
+- **Resume Handoff**: Issue pre-signed upload links tied to each job application
 
 ### **Experience Management**
 - **Work History Tracking**: Log positions, responsibilities, and achievements
@@ -71,6 +73,12 @@ git checkout v0.0.1
 - **Interview Scheduling**: Set reminders for interviews and follow-ups
 - **Cover Letter Management**: Store and reuse customized cover letters
 - **Progress Analytics**: Visualize application success rates and trends
+- **Job Snapshot History**: Each saved application retains job title, company, and source even after listings expire
+
+### **Resume Management**
+- **Secure Uploads**: Cognito-authenticated signed URLs with S3-managed encryption
+- **Resume Library**: Centralized view, download, and deletion of stored resumes
+- **Automatic Linking**: Latest resume key synced to the user profile for downstream workflows
 
 ### **Career Planning**
 - **Goal Setting**: Define short-term and long-term career objectives
@@ -105,6 +113,7 @@ git checkout v0.0.1
 - **AWS Amplify**: Native authentication and API integration
 - **React Navigation**: Native navigation with stack and tab patterns
 - **Platform-specific UI**: Native components for optimal UX
+- **Offline-first DataStore**: Local queueing, sync banners, and conflict resolution for critical data
 
 ### **Shared Utilities**
 - **TypeScript**: Strongly typed interfaces and utilities
@@ -341,6 +350,13 @@ cdk bootstrap
 cd infrastructure && rm -rf cdk.out
 ```
 
+**Resume Upload CORS Errors**
+```bash
+# Ensure the uploads bucket has the latest CORS rules
+cd infrastructure
+yarn cdk deploy --require-approval never
+```
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Development Instructions](instructions.md) for detailed guidelines.
@@ -366,6 +382,12 @@ We welcome contributions! Please see our [Development Instructions](instructions
 - ✅ **Production Ready**: Comprehensive testing, CI/CD, documentation
 - 🚀 **Deployment Ready**: All components configured for AWS deployment
 
+#### Recent Enhancements (December 9, 2025)
+- 📄 **Resume Uploads**: Signed URL flow backed by DynamoDB metadata and Cognito-protected API Gateway authorizers
+- 📱 **Mobile Offline Sync**: Amplify DataStore integration with queued writes, conflict handling, and sync status banner
+- 🗂️ **Job Snapshot Persistence**: Applications store job title/company/source to avoid "Unknown Job" regressions
+- 🌐 **S3 CORS Hardening**: CDK-managed bucket rules allowing PUT/GET from localhost and the hosted web origin
+
 #### Recent Enhancements (December 8, 2025)
 - 🛡️ **Error Handling & Resilience**: Enterprise-grade fault tolerance implementation
 - 🔄 **Circuit Breaker Pattern**: Automatic failure detection and recovery for DynamoDB operations
@@ -382,7 +404,7 @@ See [Releases](https://github.com/jackyxhb/CareerHelper/releases) for full chang
 - [ ] AI-powered resume optimization and suggestions
 - [ ] LinkedIn integration for network building
 - [ ] Advanced analytics dashboard with career insights
-- [ ] Mobile offline support for critical features
+- [x] Mobile offline support for critical features *(delivered Dec 9, 2025)*
 - [ ] Multi-language support (i18n)
 - [ ] Advanced job matching algorithms with ML
 - [ ] Interview preparation tools and mock interviews
