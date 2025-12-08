@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Amplify } from 'aws-amplify';
+import { Amplify, Auth } from 'aws-amplify';
 import { withAuthenticator } from 'aws-amplify-react-native';
 import { DataStore } from '@aws-amplify/datastore';
 import { Alert, Button } from 'react-native';
@@ -26,6 +26,17 @@ Amplify.configure({
         name: 'CareerHelperAPI',
         endpoint: config.apiEndpoint,
         region: config.region,
+        custom_header: async () => {
+          try {
+            const session = await Auth.currentSession();
+            return {
+              Authorization: `Bearer ${session.getIdToken().getJwtToken()}`,
+            };
+          } catch (error) {
+            logError('Failed to resolve auth token for API request', error);
+            return {};
+          }
+        },
       },
     ],
   },

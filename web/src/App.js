@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { Amplify, API } from 'aws-amplify';
+import { Amplify, API, Auth } from 'aws-amplify';
 import { Authenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import config from './amplify-config.json';
@@ -25,6 +25,19 @@ Amplify.configure({
         name: 'CareerHelperAPI',
         endpoint: config.apiEndpoint,
         region: config.region,
+        custom_header: async () => {
+          try {
+            const session = await Auth.currentSession();
+            const token = session.getIdToken().getJwtToken();
+
+            return {
+              Authorization: `Bearer ${token}`,
+            };
+          } catch (error) {
+            logError('Failed to resolve auth token for API request', error);
+            return {};
+          }
+        },
       },
     ],
   },
