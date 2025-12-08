@@ -13,7 +13,10 @@ class ErrorHandler {
       ForbiddenError: { statusCode: 403, message: 'Access forbidden' },
       ConflictError: { statusCode: 409, message: 'Resource conflict' },
       DynamoDBError: { statusCode: 500, message: 'Database operation failed' },
-      NetworkError: { statusCode: 502, message: 'External service unavailable' },
+      NetworkError: {
+        statusCode: 502,
+        message: 'External service unavailable',
+      },
     };
 
     // Determine error type and status code
@@ -25,7 +28,10 @@ class ErrorHandler {
       const mapping = errorMappings[error.name];
       statusCode = mapping.statusCode;
       // Use the error's message if it's a custom error class, otherwise use the mapping
-      message = error instanceof Error && error.constructor !== Error ? error.message : mapping.message;
+      message =
+        error instanceof Error && error.constructor !== Error
+          ? error.message
+          : mapping.message;
       errorType = error.name;
     } else if (error.code) {
       // AWS SDK errors
@@ -76,12 +82,16 @@ class ErrorHandler {
 
     // Log the error
     const log = new logger(context);
-    log.error('Request failed', {
-      errorType,
-      statusCode,
-      originalMessage: error.message,
-      stack: error.stack
-    }, error);
+    log.error(
+      'Request failed',
+      {
+        errorType,
+        statusCode,
+        originalMessage: error.message,
+        stack: error.stack,
+      },
+      error
+    );
 
     // Return consistent error response
     return {
@@ -97,9 +107,9 @@ class ErrorHandler {
           type: errorType,
           message,
           timestamp: new Date().toISOString(),
-          requestId: context.requestId || 'unknown'
-        }
-      })
+          requestId: context.requestId || 'unknown',
+        },
+      }),
     };
   }
 
@@ -111,25 +121,9 @@ class ErrorHandler {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        ...headers
+        ...headers,
       },
-      body: JSON.stringify(data)
-    };
-  }
-
-  /**
-   * Create a standardized success response
-   */
-  static createSuccessResponse(data, statusCode = 200) {
-    return {
-      statusCode,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     };
   }
 }
@@ -184,5 +178,5 @@ module.exports = {
   UnauthorizedError,
   ForbiddenError,
   ConflictError,
-  DynamoDBError
+  DynamoDBError,
 };

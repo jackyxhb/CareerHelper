@@ -1,11 +1,14 @@
 const DynamoDBUtil = require('../utils/dynamodb');
 const { ErrorHandler, ConflictError } = require('../utils/errorHandler');
-const { RequestHandler, ValidationSchemas } = require('../utils/requestHandler');
+const {
+  RequestHandler,
+  ValidationSchemas,
+} = require('../utils/requestHandler');
 
 const dynamodb = new DynamoDBUtil(process.env.USERS_TABLE);
 const requestHandler = new RequestHandler('createUser');
 
-exports.handler = requestHandler.createResponse(async (event) => {
+exports.handler = requestHandler.createResponse(async event => {
   // Parse and validate request body
   const userData = requestHandler.parseBody(event, ['userId', 'email', 'name']);
 

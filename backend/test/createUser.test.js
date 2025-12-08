@@ -22,11 +22,13 @@ describe('createUser', () => {
   it('should create a user successfully', async () => {
     const mockDynamoDBUtil = {
       getItem: sinon.stub().resolves(undefined), // No existing user
-      putItem: sinon.stub().resolves()
+      putItem: sinon.stub().resolves(),
     };
 
     handler = proxyquire('../functions/createUser', {
-      '../utils/dynamodb': function() { return mockDynamoDBUtil; }
+      '../utils/dynamodb': function () {
+        return mockDynamoDBUtil;
+      },
     }).handler;
 
     const event = {
@@ -47,11 +49,13 @@ describe('createUser', () => {
   it('should return 500 on error', async () => {
     const mockDynamoDBUtil = {
       getItem: sinon.stub().resolves(undefined), // No existing user
-      putItem: sinon.stub().rejects(new Error('DynamoDB error'))
+      putItem: sinon.stub().rejects(new Error('DynamoDB error')),
     };
 
     handler = proxyquire('../functions/createUser', {
-      '../utils/dynamodb': function() { return mockDynamoDBUtil; }
+      '../utils/dynamodb': function () {
+        return mockDynamoDBUtil;
+      },
     }).handler;
 
     const event = {

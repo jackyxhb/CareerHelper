@@ -22,11 +22,13 @@ describe('getUser', () => {
   it('should return user data when user exists', async () => {
     const mockUser = { userId: '123', name: 'John Doe' };
     const mockDynamoDBUtil = {
-      getItem: sinon.stub().resolves(mockUser)
+      getItem: sinon.stub().resolves(mockUser),
     };
 
     handler = proxyquire('../functions/getUser', {
-      '../utils/dynamodb': function() { return mockDynamoDBUtil; }
+      '../utils/dynamodb': function () {
+        return mockDynamoDBUtil;
+      },
     }).handler;
 
     const event = { pathParameters: { userId: '123' } };
@@ -38,11 +40,13 @@ describe('getUser', () => {
 
   it('should return 404 when user does not exist', async () => {
     const mockDynamoDBUtil = {
-      getItem: sinon.stub().resolves(undefined) // No user found
+      getItem: sinon.stub().resolves(undefined), // No user found
     };
 
     handler = proxyquire('../functions/getUser', {
-      '../utils/dynamodb': function() { return mockDynamoDBUtil; }
+      '../utils/dynamodb': function () {
+        return mockDynamoDBUtil;
+      },
     }).handler;
 
     const event = { pathParameters: { userId: '123' } };

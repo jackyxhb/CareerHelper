@@ -9,7 +9,7 @@ class RequestHandler {
     this.functionName = functionName;
     this.logger = new Logger({
       function: functionName,
-      requestId: options.requestId
+      requestId: options.requestId,
     });
     this.startTime = Date.now();
   }
@@ -23,20 +23,23 @@ class RequestHandler {
         throw new ValidationError('Request body is required');
       }
 
-      const body = typeof event.body === 'string'
-        ? JSON.parse(event.body)
-        : event.body;
+      const body =
+        typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
 
       // Validate required fields
       for (const field of requiredFields) {
-        if (body[field] === undefined || body[field] === null || body[field] === '') {
+        if (
+          body[field] === undefined ||
+          body[field] === null ||
+          body[field] === ''
+        ) {
           throw new ValidationError(`Missing required field: ${field}`);
         }
       }
 
       this.logger.debug('Request body parsed successfully', {
         bodySize: JSON.stringify(body).length,
-        requiredFields
+        requiredFields,
       });
 
       return body;
@@ -62,7 +65,7 @@ class RequestHandler {
 
     this.logger.debug('Path parameters validated', {
       params: Object.keys(params),
-      requiredParams
+      requiredParams,
     });
 
     return params;
@@ -84,7 +87,7 @@ class RequestHandler {
 
     this.logger.debug('Query parameters processed', {
       paramCount: Object.keys(params).length,
-      validatedCount: Object.keys(validated).length
+      validatedCount: Object.keys(validated).length,
     });
 
     return validated;
@@ -100,7 +103,10 @@ class RequestHandler {
       const value = data[field];
 
       // Required field check
-      if (rules.required && (value === undefined || value === null || value === '')) {
+      if (
+        rules.required &&
+        (value === undefined || value === null || value === '')
+      ) {
         errors.push(`${field} is required`);
         continue;
       }
@@ -114,17 +120,23 @@ class RequestHandler {
       if (rules.type) {
         const actualType = Array.isArray(value) ? 'array' : typeof value;
         if (actualType !== rules.type) {
-          errors.push(`${field} must be of type ${rules.type}, got ${actualType}`);
+          errors.push(
+            `${field} must be of type ${rules.type}, got ${actualType}`
+          );
         }
       }
 
       // String validations
       if (rules.type === 'string' && typeof value === 'string') {
         if (rules.minLength && value.length < rules.minLength) {
-          errors.push(`${field} must be at least ${rules.minLength} characters long`);
+          errors.push(
+            `${field} must be at least ${rules.minLength} characters long`
+          );
         }
         if (rules.maxLength && value.length > rules.maxLength) {
-          errors.push(`${field} must be at most ${rules.maxLength} characters long`);
+          errors.push(
+            `${field} must be at most ${rules.maxLength} characters long`
+          );
         }
         if (rules.pattern && !rules.pattern.test(value)) {
           errors.push(`${field} format is invalid`);
@@ -165,7 +177,7 @@ class RequestHandler {
     }
 
     this.logger.debug('Input validation passed', {
-      validatedFields: Object.keys(schema).length
+      validatedFields: Object.keys(schema).length,
     });
   }
 
@@ -190,7 +202,8 @@ class RequestHandler {
       statusCode,
       duration,
       responseSize,
-      performance: duration > 5000 ? 'slow' : duration > 1000 ? 'normal' : 'fast'
+      performance:
+        duration > 5000 ? 'slow' : duration > 1000 ? 'normal' : 'fast',
     });
   }
 
@@ -202,7 +215,7 @@ class RequestHandler {
       const requestId = context?.awsRequestId || `test-${Date.now()}`;
       this.logger = new Logger({
         function: this.functionName,
-        requestId
+        requestId,
       });
 
       try {
@@ -215,7 +228,7 @@ class RequestHandler {
           ? errorHandler(error, { requestId, function: this.functionName })
           : require('./errorHandler').ErrorHandler.createErrorResponse(error, {
               requestId,
-              function: this.functionName
+              function: this.functionName,
             });
 
         this.logRequestComplete(errorResponse.statusCode);
@@ -233,9 +246,9 @@ const ValidationSchemas = {
       type: 'string',
       required: true,
       pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-      maxLength: 254
+      maxLength: 254,
     },
-    name: { type: 'string', required: true, minLength: 1, maxLength: 100 }
+    name: { type: 'string', required: true, minLength: 1, maxLength: 100 },
   },
 
   job: {
@@ -253,7 +266,7 @@ const ValidationSchemas = {
     title: { type: 'string', required: true, minLength: 1, maxLength: 200 },
     company: { type: 'string', required: true, minLength: 1, maxLength: 100 },
     startDate: { type: 'string', required: true },
-    description: { type: 'string', maxLength: 2000 }
+    description: { type: 'string', maxLength: 2000 },
   },
 
   application: {
@@ -263,15 +276,21 @@ const ValidationSchemas = {
     status: {
       type: 'string',
       required: true,
-      validate: (value) => {
-        const validStatuses = ['applied', 'interviewing', 'offered', 'rejected', 'withdrawn'];
+      validate: value => {
+        const validStatuses = [
+          'applied',
+          'interviewing',
+          'offered',
+          'rejected',
+          'withdrawn',
+        ];
         return validStatuses.includes(value) ? null : 'Invalid status value';
-      }
-    }
-  }
+      },
+    },
+  },
 };
 
 module.exports = {
   RequestHandler,
-  ValidationSchemas
+  ValidationSchemas,
 };

@@ -4,14 +4,26 @@ import typescriptParser from '@typescript-eslint/parser';
 import prettier from 'eslint-plugin-prettier';
 
 export default [
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/coverage/**',
+      '**/.serverless/**',
+      '**/cdk.out/**',
+      'amplify-gradle-config.json',
+      'amplifytools.xcconfig',
+      'web/build/**',
+      'infrastructure/dist/**',
+      'mobile/android/**',
+      'mobile/ios/**',
+    ],
+  },
   js.configs.recommended,
   {
-    files: ['**/*.{js,ts,jsx,tsx}'],
-    ignores: ['web/**', 'mobile/**', 'node_modules/**'],
+    files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
-      parser: typescriptParser,
-      ecmaVersion: 2022,
-      sourceType: 'module',
       globals: {
         console: 'readonly',
         process: 'readonly',
@@ -32,54 +44,58 @@ export default [
         exports: 'writable',
         module: 'readonly',
       },
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
     },
     plugins: {
-      '@typescript-eslint': typescript,
-      prettier: prettier,
+      prettier,
     },
     rules: {
       'prettier/prettier': 'error',
+      'no-console': 'warn',
+      'no-undef': 'off',
+    },
+  },
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    plugins: {
+      '@typescript-eslint': typescript,
+    },
+    rules: {
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_' },
       ],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
-      'no-console': 'warn',
-      'no-undef': 'off', // Turn off because we're using CommonJS in Node.js
     },
   },
   {
-    files: ['*.js'],
+    files: ['web/**/*.{js,jsx,ts,tsx}', 'mobile/**/*.{js,jsx,ts,tsx}'],
     rules: {
-      '@typescript-eslint/no-var-requires': 'off',
+      'no-unused-vars': 'off',
     },
   },
   {
-    files: ['*.test.js', '*.test.ts'],
+    files: ['**/*.test.{js,ts,jsx,tsx}'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       'no-console': 'off',
     },
-  },
-  {
-    ignores: [
-      'node_modules/',
-      'dist/',
-      'build/',
-      'coverage/',
-      '*.min.js',
-      '*.config.js',
-      '!.eslintrc.js',
-      'package-lock.json',
-      'yarn.lock',
-      '.DS_Store',
-      '.env*',
-      '*.log',
-      '.serverless/',
-      'cdk.out/',
-      'amplify-gradle-config.json',
-      'amplifytools.xcconfig',
-    ],
   },
 ];

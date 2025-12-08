@@ -20,7 +20,7 @@ class DynamoDBUtil {
         maxAttempts: options.maxAttempts || 3,
         retryMode: 'adaptive', // Use adaptive retry strategy
         requestTimeout: options.requestTimeout || 5000,
-        ...options.clientConfig
+        ...options.clientConfig,
       });
     }
 
@@ -47,11 +47,16 @@ class DynamoDBUtil {
     const now = Date.now();
 
     if (this.circuitBreaker.state === 'OPEN') {
-      if (now - this.circuitBreaker.lastFailureTime > this.circuitBreaker.recoveryTimeout) {
+      if (
+        now - this.circuitBreaker.lastFailureTime >
+        this.circuitBreaker.recoveryTimeout
+      ) {
         this.circuitBreaker.state = 'HALF_OPEN';
         this.logger.info('Circuit breaker moving to HALF_OPEN state');
       } else {
-        throw new Error('Circuit breaker is OPEN - service temporarily unavailable');
+        throw new Error(
+          'Circuit breaker is OPEN - service temporarily unavailable'
+        );
       }
     }
   }
@@ -66,7 +71,7 @@ class DynamoDBUtil {
     if (this.circuitBreaker.failures >= this.circuitBreaker.failureThreshold) {
       this.circuitBreaker.state = 'OPEN';
       this.logger.warn('Circuit breaker opened due to repeated failures', {
-        failures: this.circuitBreaker.failures
+        failures: this.circuitBreaker.failures,
       });
     }
   }
@@ -91,7 +96,7 @@ class DynamoDBUtil {
     try {
       this.logger.debug(`Executing ${operationName}`, {
         tableName: this.tableName,
-        circuitBreakerState: this.circuitBreaker.state
+        circuitBreakerState: this.circuitBreaker.state,
       });
 
       const result = await this.dynamodb.send(command);
@@ -103,16 +108,22 @@ class DynamoDBUtil {
     } catch (error) {
       this._recordFailure();
 
-      this.logger.error(`${operationName} failed`, {
-        error: error.message,
-        code: error.code,
-        statusCode: error.$metadata?.httpStatusCode,
-        attempts: error.$metadata?.attempts,
-        circuitBreakerState: this.circuitBreaker.state
-      }, error);
+      this.logger.error(
+        `${operationName} failed`,
+        {
+          error: error.message,
+          code: error.code,
+          statusCode: error.$metadata?.httpStatusCode,
+          attempts: error.$metadata?.attempts,
+          circuitBreakerState: this.circuitBreaker.state,
+        },
+        error
+      );
 
       // Re-throw with additional context
-      const enhancedError = new Error(`${operationName} failed: ${error.message}`);
+      const enhancedError = new Error(
+        `${operationName} failed: ${error.message}`
+      );
       enhancedError.name = error.name || 'DynamoDBError';
       enhancedError.code = error.code;
       enhancedError.originalError = error;

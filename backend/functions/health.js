@@ -10,7 +10,7 @@ exports.handler = requestHandler.createResponse(async () => {
   try {
     await dynamodb.scanItems({ Limit: 1 });
   } catch (error) {
-    throw new Error('Database health check failed');
+    throw new Error(`Database health check failed: ${error.message}`);
   }
 
   // Get circuit breaker status
@@ -23,10 +23,10 @@ exports.handler = requestHandler.createResponse(async () => {
     version: '0.0.1',
     checks: {
       dynamodb: 'ok',
-      circuitBreaker: circuitBreakerStatus.state.toLowerCase()
+      circuitBreaker: circuitBreakerStatus.state.toLowerCase(),
     },
     metrics: {
-      circuitBreaker: circuitBreakerStatus
-    }
+      circuitBreaker: circuitBreakerStatus,
+    },
   });
 });

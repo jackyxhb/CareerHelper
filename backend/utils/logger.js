@@ -6,7 +6,7 @@ class Logger {
     this.context = {
       service: 'CareerHelper',
       version: '0.0.1',
-      ...context
+      ...context,
     };
   }
 
@@ -16,14 +16,14 @@ class Logger {
       level,
       message,
       ...this.context,
-      ...data
+      ...data,
     };
 
     if (error) {
       logEntry.error = {
         name: error.name,
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       };
     }
 
