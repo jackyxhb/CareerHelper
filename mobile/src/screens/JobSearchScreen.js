@@ -59,6 +59,10 @@ function JobSearchScreen() {
         status: 'APPLIED',
         appliedAt: new Date().toISOString(),
         notes: '',
+        jobTitle: job.title,
+        jobCompany: job.company,
+        jobLocation: job.location,
+        jobSource: job.source || 'Internal',
       });
       setFeedback('Saved to your application tracker.');
       logInfo('Job saved to application tracker', { jobId: job.jobId });

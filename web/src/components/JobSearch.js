@@ -54,6 +54,10 @@ function JobSearch({ user }) {
           jobId: job.jobId,
           status: 'APPLIED',
           notes: '',
+          jobTitle: job.title,
+          jobCompany: job.company,
+          jobLocation: job.location,
+          jobSource: job.source,
         },
       });
 

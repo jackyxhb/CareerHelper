@@ -5,7 +5,16 @@ const Logger = require('../utils/logger');
 const { ErrorHandler } = require('../utils/errorHandler');
 
 exports.handler = async event => {
-  const { userId, jobId, status, notes } = JSON.parse(event.body);
+  const {
+    userId,
+    jobId,
+    status,
+    notes,
+    jobTitle,
+    jobCompany,
+    jobLocation,
+    jobSource,
+  } = JSON.parse(event.body);
 
   const logger = new Logger({
     component: 'createApplication',
@@ -26,6 +35,10 @@ exports.handler = async event => {
       status,
       appliedAt: new Date().toISOString(),
       notes,
+      ...(jobTitle ? { jobTitle } : {}),
+      ...(jobCompany ? { jobCompany } : {}),
+      ...(jobLocation ? { jobLocation } : {}),
+      ...(jobSource ? { jobSource } : {}),
     },
   };
 

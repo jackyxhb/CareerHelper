@@ -1,16 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, FlatList } from 'react-native';
 import { Auth } from 'aws-amplify';
 import { DataStore } from '@aws-amplify/datastore';
-import { Application } from 'careerhelper-shared';
+import { Application, Job } from 'careerhelper-shared';
 import SyncStatusBanner from '../components/SyncStatusBanner';
 import { syncApplicationsFromApi } from '../services/dataSync';
 import { logError } from '../utils/logger';
 
 function ApplicationScreen() {
   const [applications, setApplications] = useState([]);
+  const [jobs, setJobs] = useState([]);
   useEffect(() => {
-    let subscription;
+    let applicationSubscription;
+    let jobSubscription;
     let mounted = true;
 
     const bootstrap = async () => {
@@ -20,11 +22,17 @@ function ApplicationScreen() {
           return;
         }
 
-        subscription = DataStore.observeQuery(Application, app =>
+        applicationSubscription = DataStore.observeQuery(Application, app =>
           app.userId('eq', currentUser.username)
         ).subscribe(snapshot => {
           if (mounted) {
             setApplications(snapshot.items);
+          }
+        });
+
+        jobSubscription = DataStore.observeQuery(Job).subscribe(snapshot => {
+          if (mounted) {
+            setJobs(snapshot.items);
           }
         });
 
@@ -38,21 +46,42 @@ function ApplicationScreen() {
 
     return () => {
       mounted = false;
-      subscription?.unsubscribe();
+      applicationSubscription?.unsubscribe();
+      jobSubscription?.unsubscribe();
     };
   }, []);
 
-  const renderApplication = ({ item }) => (
-    <View style={{ padding: 10, borderBottomWidth: 1 }}>
-      <Text style={{ fontWeight: 'bold' }}>Job ID: {item.jobId}</Text>
-      <Text>Status: {item.status}</Text>
-      <Text>Applied: {new Date(item.appliedAt).toLocaleDateString()}</Text>
-      {item.notes && <Text>Notes: {item.notes}</Text>}
-      {item.pendingSync && (
-        <Text style={{ color: '#b45309' }}>Awaiting sync…</Text>
-      )}
-    </View>
-  );
+  const jobLookup = useMemo(() => {
+    const lookup = new Map();
+    jobs.forEach(job => {
+      if (job.jobId) {
+        lookup.set(job.jobId, job);
+      }
+    });
+    return lookup;
+  }, [jobs]);
+
+  const renderApplication = ({ item }) => {
+    const jobRecord = jobLookup.get(item.jobId);
+    const title = jobRecord?.title || item.jobTitle || 'Unknown Job';
+    const company = jobRecord?.company || item.jobCompany;
+    const location = jobRecord?.location || item.jobLocation;
+
+    return (
+      <View style={{ padding: 10, borderBottomWidth: 1 }}>
+        <Text style={{ fontWeight: 'bold' }}>{title}</Text>
+        {company && <Text>{company}</Text>}
+        {location && <Text>{location}</Text>}
+        <Text>Job ID: {item.jobId}</Text>
+        <Text>Status: {item.status}</Text>
+        <Text>Applied: {new Date(item.appliedAt).toLocaleDateString()}</Text>
+        {item.notes && <Text>Notes: {item.notes}</Text>}
+        {item.pendingSync && (
+          <Text style={{ color: '#b45309' }}>Awaiting sync…</Text>
+        )}
+      </View>
+    );
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -64,6 +93,7 @@ function ApplicationScreen() {
         data={applications}
         renderItem={renderApplication}
         keyExtractor={item => item.applicationId}
+        extraData={jobLookup}
       />
     </View>
   );

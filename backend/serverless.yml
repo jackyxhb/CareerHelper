@@ -25,6 +25,13 @@ provider:
         - X-Amz-Security-Token
         - X-Api-Key
       allowCredentials: false
+    authorizers:
+      cognitoAuthorizer:
+        type: jwt
+        identitySource: $request.header.Authorization
+        issuerUrl: https://cognito-idp.${self:provider.region}.amazonaws.com/${self:custom.cognito.userPoolId}
+        audience:
+          - ${self:custom.cognito.userPoolClientId}
   environment:
     STAGE: ${self:provider.stage}
     USERS_TABLE: ${self:custom.usersTable}
@@ -63,6 +70,9 @@ custom:
   experiencesTable: !Ref ExperiencesTable
   applicationsTable: !Ref ApplicationsTable
   resumesTable: !Ref ResumesTable
+  cognito:
+    userPoolId: ${ssm:/careerhelper/${self:provider.stage}/cognito-user-pool-id,'us-east-1_i6MVDANKl'}
+    userPoolClientId: ${ssm:/careerhelper/${self:provider.stage}/cognito-user-pool-client-id,'7c4na85t32e2mb0rokad12djn3'}
 
 functions:
   getUser:
@@ -141,6 +151,8 @@ functions:
       - httpApi:
           path: /uploads/resume
           method: post
+          authorizer:
+            name: cognitoAuthorizer
 
   getResumes:
     handler: functions/getResumes.handler
@@ -148,6 +160,8 @@ functions:
       - httpApi:
           path: /uploads/resume
           method: get
+          authorizer:
+            name: cognitoAuthorizer
 
   deleteResume:
     handler: functions/deleteResume.handler
@@ -155,6 +169,8 @@ functions:
       - httpApi:
           path: /uploads/resume/{resumeId}
           method: delete
+          authorizer:
+            name: cognitoAuthorizer
 
   health:
     handler: functions/health.handler

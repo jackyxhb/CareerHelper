@@ -35,6 +35,10 @@ export interface Application {
   status: 'APPLIED' | 'INTERVIEWING' | 'OFFERED' | 'REJECTED' | 'WITHDRAWN';
   appliedAt: string;
   notes?: string;
+  jobTitle?: string;
+  jobCompany?: string;
+  jobLocation?: string;
+  jobSource?: string;
   pendingSync?: boolean;
   lastSyncedAt?: string;
 }

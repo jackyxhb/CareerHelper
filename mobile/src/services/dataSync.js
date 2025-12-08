@@ -10,6 +10,12 @@ export async function syncJobsFromApi() {
   try {
     const jobs = await API.get(API_NAME, '/jobs');
     const existingJobs = await DataStore.query(Job);
+    const existingApplications = await DataStore.query(Application);
+    const referencedJobIds = new Set(
+      existingApplications
+        .map(application => application.jobId)
+        .filter(jobId => Boolean(jobId))
+    );
     const existingMap = new Map(existingJobs.map(job => [job.jobId, job]));
     const seenIds = new Set();
 
@@ -45,7 +51,9 @@ export async function syncJobsFromApi() {
       })
     );
 
-    const stale = existingJobs.filter(job => !seenIds.has(job.jobId));
+    const stale = existingJobs.filter(
+      job => !seenIds.has(job.jobId) && !referencedJobIds.has(job.jobId)
+    );
     await Promise.all(stale.map(job => DataStore.delete(job)));
     logInfo('Jobs synchronized into DataStore', { count: jobs.length });
   } catch (error) {
@@ -120,6 +128,10 @@ export async function syncApplicationsFromApi(userId) {
               updated.status = item.status;
               updated.appliedAt = item.appliedAt;
               updated.notes = item.notes ?? '';
+              updated.jobTitle = item.jobTitle ?? record.jobTitle ?? null;
+              updated.jobCompany = item.jobCompany ?? record.jobCompany ?? null;
+              updated.jobLocation = item.jobLocation ?? record.jobLocation ?? null;
+              updated.jobSource = item.jobSource ?? record.jobSource ?? null;
               updated.pendingSync = false;
               updated.lastSyncedAt = new Date().toISOString();
             })
@@ -134,6 +146,10 @@ export async function syncApplicationsFromApi(userId) {
               status: item.status,
               appliedAt: item.appliedAt,
               notes: item.notes ?? '',
+              jobTitle: item.jobTitle ?? null,
+              jobCompany: item.jobCompany ?? null,
+              jobLocation: item.jobLocation ?? null,
+              jobSource: item.jobSource ?? null,
               pendingSync: false,
               lastSyncedAt: new Date().toISOString(),
             })
@@ -206,6 +222,10 @@ export async function createLocalApplication(userId, payload) {
       status: payload.status,
       appliedAt: payload.appliedAt,
       notes: payload.notes ?? '',
+      jobTitle: payload.jobTitle ?? null,
+      jobCompany: payload.jobCompany ?? null,
+      jobLocation: payload.jobLocation ?? null,
+      jobSource: payload.jobSource ?? null,
       pendingSync: true,
       lastSyncedAt: null,
     })
@@ -218,6 +238,10 @@ export async function createLocalApplication(userId, payload) {
         jobId: payload.jobId,
         status: payload.status,
         notes: payload.notes,
+        jobTitle: payload.jobTitle,
+        jobCompany: payload.jobCompany,
+        jobLocation: payload.jobLocation,
+        jobSource: payload.jobSource,
       },
     });
     await DataStore.save(
@@ -280,6 +304,10 @@ export async function flushPendingChanges(userId) {
               jobId: item.jobId,
               status: item.status,
               notes: item.notes,
+              jobTitle: item.jobTitle,
+              jobCompany: item.jobCompany,
+              jobLocation: item.jobLocation,
+              jobSource: item.jobSource,
             },
           });
           await DataStore.save(

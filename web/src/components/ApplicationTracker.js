@@ -38,9 +38,21 @@ function ApplicationTracker({ user }) {
     fetchData(userId);
   }, [userId]);
 
-  const getJobTitle = jobId => {
-    const job = jobs.find(j => j.jobId === jobId);
-    return job ? job.title : 'Unknown Job';
+  const getJobDetails = application => {
+    const job = jobs.find(j => j.jobId === application.jobId);
+    if (job) {
+      return {
+        title: job.title,
+        company: job.company,
+        location: job.location,
+      };
+    }
+
+    return {
+      title: application.jobTitle || 'Unknown Job',
+      company: application.jobCompany || null,
+      location: application.jobLocation || null,
+    };
   };
 
   if (!userId) {
@@ -56,14 +68,19 @@ function ApplicationTracker({ user }) {
     <div>
       <h2>Application Tracker</h2>
       <ul>
-        {applications.map(app => (
-          <li key={app.applicationId}>
-            <h3>{getJobTitle(app.jobId)}</h3>
-            <p>Status: {app.status}</p>
-            <p>Applied: {new Date(app.appliedAt).toLocaleDateString()}</p>
-            {app.notes && <p>Notes: {app.notes}</p>}
-          </li>
-        ))}
+        {applications.map(app => {
+          const details = getJobDetails(app);
+          return (
+            <li key={app.applicationId}>
+              <h3>{details.title}</h3>
+              {details.company && <p>{details.company}</p>}
+              {details.location && <p>{details.location}</p>}
+              <p>Status: {app.status}</p>
+              <p>Applied: {new Date(app.appliedAt).toLocaleDateString()}</p>
+              {app.notes && <p>Notes: {app.notes}</p>}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
