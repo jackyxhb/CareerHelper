@@ -19,9 +19,9 @@ A comprehensive career management platform built as a monorepo with serverless A
 ✅ **Documentation**: API specs and development guidelines  
 ✅ **Resume Uploads**: Cognito-protected signed URLs backed by DynamoDB metadata  
 ✅ **Error Handling**: Enterprise-grade resilience with circuit breakers and structured logging  
-✅ **Release**: v0.0.1 published and production-ready  
+✅ **Release**: v0.0.2 published and production-ready  
 
-**🎉 Officially released as v0.0.1 - Ready for production deployment!**
+**🎉 Officially released as v0.0.2 - Ready for production deployment!**
 
 #### 🌐 Live Demo
 - **Web App**: http://careerhelper-web-dev-1765124463.s3-website-us-east-1.amazonaws.com
@@ -29,25 +29,23 @@ A comprehensive career management platform built as a monorepo with serverless A
 
 ## 📦 Latest Release
 
-### [v0.0.1](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.1) - Initial Release
+### [v0.0.2](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.2) - Resume Uploads & Offline Sync
 
-**Released**: December 7, 2025
+**Released**: December 9, 2025
 
-#### 🎉 Features
-- Complete serverless AWS backend with 8 Lambda functions
-- React web application with full career management features
-- React Native mobile app for iOS and Android
-- AWS CDK infrastructure with DynamoDB, Cognito, and S3
-- Comprehensive unit testing with AWS SDK v3 mocking
-- GitHub Actions CI/CD pipeline
-- Complete API documentation and development guidelines
+#### 🎉 Highlights
+- Resume upload pipeline with Cognito-authorized signed URLs and DynamoDB metadata
+- Web application updates for resume management, job snapshot persistence, and improved authorization headers
+- Mobile offline-first experience with Amplify DataStore sync banners and conflict handling
+- Infrastructure hardening with CDK-managed S3 CORS rules and aligned shared schema types
+- Documentation refresh covering new workflows and troubleshooting steps
 
 #### 📥 Installation Options
 ```bash
 # Install latest release
 git clone https://github.com/jackyxhb/CareerHelper.git
 cd CareerHelper
-git checkout v0.0.1
+git checkout v0.0.2
 
 # Or download from releases
 # https://github.com/jackyxhb/CareerHelper/releases/latest
@@ -152,7 +150,7 @@ Secrets are managed through automated scripts in [`scripts/setup-secrets.sh`](sc
    ```bash
    git clone https://github.com/jackyxhb/CareerHelper.git
    cd CareerHelper
-   git checkout v0.0.1
+   git checkout v0.0.2
    ```
 
 2. **Follow deployment instructions below**
@@ -376,17 +374,18 @@ We welcome contributions! Please see our [Development Instructions](instructions
 
 ## 📋 Changelog
 
+### [v0.0.2](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.2) - December 9, 2025
+- 📄 **Resume Uploads**: Cognito-secured signed URLs with DynamoDB metadata and UI integration across web/mobile
+- 📱 **Offline Sync Enhancements**: Amplify DataStore with conflict handling, queued writes, and sync status indicators
+- 🗂️ **Job Snapshot Persistence**: Applications retain job title/company/source to avoid stale listing regressions
+- 🌐 **CORS Hardening**: CDK-managed S3 bucket rules covering localhost and hosted web origins
+- 📘 **Documentation Refresh**: Updated README, troubleshooting guides, and deployment notes
+
 ### [v0.0.1](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.1) - December 7, 2025
 - 🎉 **Initial Release**: Complete career management platform
 - 🏗️ **Full Architecture**: Serverless backend, web app, mobile app, infrastructure
 - ✅ **Production Ready**: Comprehensive testing, CI/CD, documentation
 - 🚀 **Deployment Ready**: All components configured for AWS deployment
-
-#### Recent Enhancements (December 9, 2025)
-- 📄 **Resume Uploads**: Signed URL flow backed by DynamoDB metadata and Cognito-protected API Gateway authorizers
-- 📱 **Mobile Offline Sync**: Amplify DataStore integration with queued writes, conflict handling, and sync status banner
-- 🗂️ **Job Snapshot Persistence**: Applications store job title/company/source to avoid "Unknown Job" regressions
-- 🌐 **S3 CORS Hardening**: CDK-managed bucket rules allowing PUT/GET from localhost and the hosted web origin
 
 #### Recent Enhancements (December 8, 2025)
 - 🛡️ **Error Handling & Resilience**: Enterprise-grade fault tolerance implementation
@@ -462,4 +461,4 @@ This project is licensed under the MIT License.
 
 **Built with ❤️ for job seekers and career professionals worldwide**
 
-**🎉 Officially released as v0.0.1 - Start your career journey today!**
+**🎉 Officially released as v0.0.2 - Start your career journey today!**
