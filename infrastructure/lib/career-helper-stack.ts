@@ -58,6 +58,22 @@ export class CareerHelperStack extends cdk.Stack {
     const uploadsBucket = new s3.Bucket(this, 'CareerHelperUploadsBucket', {
       versioned: true,
       encryption: s3.BucketEncryption.S3_MANAGED,
+      cors: [
+        {
+          allowedMethods: [
+            s3.HttpMethods.PUT,
+            s3.HttpMethods.GET,
+            s3.HttpMethods.HEAD,
+          ],
+          allowedOrigins: [
+            'http://localhost:3000',
+            'https://careerhelper-web-dev-1765124463.s3.us-east-1.amazonaws.com',
+          ],
+          allowedHeaders: ['*'],
+          exposedHeaders: ['ETag'],
+          maxAge: 300,
+        },
+      ],
     });
 
     // IAM Role for Lambda
