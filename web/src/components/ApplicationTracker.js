@@ -2,39 +2,55 @@ import React, { useEffect, useState } from 'react';
 import { API } from 'aws-amplify';
 import { logError, logInfo } from '../utils/logger';
 
-function ApplicationTracker() {
+function ApplicationTracker({ user }) {
   const [applications, setApplications] = useState([]);
   const [jobs, setJobs] = useState([]);
+  const userId = user?.username;
 
   useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      // For now, use a test user ID since authentication is disabled
-      const testUserId = 'test-user-123';
-      const applicationsData = await API.get(
-        'CareerHelperAPI',
-        `/applications/${testUserId}`
-      );
-      setApplications(applicationsData || []);
-
-      const jobsData = await API.get('CareerHelperAPI', '/jobs');
-      setJobs(jobsData || []);
-      logInfo('Application and job data fetched', {
-        applications: applicationsData?.length || 0,
-        jobs: jobsData?.length || 0,
-      });
-    } catch (error) {
-      logError('Failed to fetch application tracker data', error);
+    if (!userId) {
+      setApplications([]);
+      return;
     }
-  };
+
+    const fetchData = async currentUserId => {
+      try {
+        const applicationsData = await API.get(
+          'CareerHelperAPI',
+          `/applications/${currentUserId}`
+        );
+        setApplications(applicationsData || []);
+
+        const jobsData = await API.get('CareerHelperAPI', '/jobs');
+        setJobs(jobsData || []);
+        logInfo('Application and job data fetched', {
+          userId: currentUserId,
+          applications: applicationsData?.length || 0,
+          jobs: jobsData?.length || 0,
+        });
+      } catch (error) {
+        logError('Failed to fetch application tracker data', error, {
+          userId: currentUserId,
+        });
+      }
+    };
+
+    fetchData(userId);
+  }, [userId]);
 
   const getJobTitle = jobId => {
     const job = jobs.find(j => j.jobId === jobId);
     return job ? job.title : 'Unknown Job';
   };
+
+  if (!userId) {
+    return (
+      <div>
+        <h2>Application Tracker</h2>
+        <p>Loading applications…</p>
+      </div>
+    );
+  }
 
   return (
     <div>

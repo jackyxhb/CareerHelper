@@ -1,45 +1,59 @@
 import React, { useEffect, useState } from 'react';
 import { API } from 'aws-amplify';
-import { logError } from '../utils/logger';
+import { logError, logInfo } from '../utils/logger';
 
-function Dashboard() {
-  const [user, setUser] = useState(null);
+function Dashboard({ user, profile }) {
   const [jobs, setJobs] = useState([]);
   const [experiences, setExperiences] = useState([]);
   const [applications, setApplications] = useState([]);
 
   useEffect(() => {
-    fetchUserData();
-  }, []);
-
-  const fetchUserData = async () => {
-    try {
-      // For now, use a test user ID since authentication is disabled
-      const testUserId = 'test-user-123';
-
-      const jobsData = await API.get('CareerHelperAPI', '/jobs');
-      setJobs(jobsData || []);
-
-      const experiencesData = await API.get(
-        'CareerHelperAPI',
-        `/experiences/${testUserId}`
-      );
-      setExperiences(experiencesData || []);
-
-      const applicationsData = await API.get(
-        'CareerHelperAPI',
-        `/applications/${testUserId}`
-      );
-      setApplications(applicationsData || []);
-    } catch (error) {
-      logError('Failed to fetch dashboard data', error);
+    if (!user?.username) {
+      setJobs([]);
+      setExperiences([]);
+      setApplications([]);
+      return;
     }
-  };
+
+    const fetchUserData = async userId => {
+      try {
+        const jobsData = await API.get('CareerHelperAPI', '/jobs');
+        setJobs(jobsData || []);
+
+        const experiencesData = await API.get(
+          'CareerHelperAPI',
+          `/experiences/${userId}`
+        );
+        setExperiences(experiencesData || []);
+
+        const applicationsData = await API.get(
+          'CareerHelperAPI',
+          `/applications/${userId}`
+        );
+        setApplications(applicationsData || []);
+
+        logInfo('Dashboard data refreshed', {
+          userId,
+          jobs: jobsData?.length || 0,
+          experiences: experiencesData?.length || 0,
+          applications: applicationsData?.length || 0,
+        });
+      } catch (error) {
+        logError('Failed to fetch dashboard data', error, {
+          userId,
+        });
+      }
+    };
+
+    fetchUserData(user.username);
+  }, [user?.username]);
 
   return (
     <div>
       <h2>Dashboard</h2>
-      {user && <p>Welcome, {user.attributes.email}!</p>}
+      {(profile?.name || user?.attributes?.email) && (
+        <p>Welcome, {profile?.name || user?.attributes?.email}!</p>
+      )}
 
       <div>
         <h3>Recent Jobs</h3>

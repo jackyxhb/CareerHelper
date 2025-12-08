@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { API, Auth } from 'aws-amplify';
+import React, { useCallback, useEffect, useState } from 'react';
+import { API } from 'aws-amplify';
 import { logError, logInfo } from '../utils/logger';
 
-function ExperienceManager() {
+function ExperienceManager({ user }) {
   const [experiences, setExperiences] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
@@ -11,35 +11,49 @@ function ExperienceManager() {
     endDate: '',
     description: '',
   });
+  const [feedback, setFeedback] = useState(null);
 
-  useEffect(() => {
-    fetchExperiences();
-  }, []);
+  const userId = user?.username;
 
-  const fetchExperiences = async () => {
+  const fetchExperiences = useCallback(async currentUserId => {
     try {
-      // For now, use a test user ID since authentication is disabled
-      const testUserId = 'test-user-123';
       const experiencesData = await API.get(
         'CareerHelperAPI',
-        `/experiences/${testUserId}`
+        `/experiences/${currentUserId}`
       );
       setExperiences(experiencesData || []);
       logInfo('Experiences fetched for web manager', {
+        userId: currentUserId,
         items: experiencesData?.length || 0,
       });
     } catch (error) {
-      logError('Failed to fetch experiences on web', error);
+      logError('Failed to fetch experiences on web', error, {
+        userId: currentUserId,
+      });
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!userId) {
+      setExperiences([]);
+      return;
+    }
+
+    fetchExperiences(userId);
+  }, [fetchExperiences, userId]);
 
   const handleSubmit = async e => {
     e.preventDefault();
+
+    if (!userId) {
+      setFeedback('Sign in to add experiences.');
+      return;
+    }
+
     try {
-      const currentUser = await Auth.currentAuthenticatedUser();
       await API.post('CareerHelperAPI', '/experiences', {
         body: {
-          userId: currentUser.username,
+          userId,
           ...formData,
         },
       });
@@ -50,13 +64,17 @@ function ExperienceManager() {
         endDate: '',
         description: '',
       });
+      setFeedback('Experience saved.');
       logInfo('Experience created via web form', {
+        userId,
         company: formData.company,
         title: formData.title,
       });
-      fetchExperiences();
+      fetchExperiences(userId);
     } catch (error) {
+      setFeedback('Could not save experience. Please try again.');
       logError('Failed to create experience on web', error, {
+        userId,
         company: formData.company,
         title: formData.title,
       });
@@ -70,6 +88,8 @@ function ExperienceManager() {
   return (
     <div>
       <h2>Experience Manager</h2>
+
+      {feedback && <p>{feedback}</p>}
 
       <form onSubmit={handleSubmit}>
         <input
