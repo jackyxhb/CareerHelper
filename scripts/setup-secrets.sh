@@ -38,23 +38,26 @@ aws ssm put-parameter \
   --overwrite
 
 # Create Secrets Manager secret (for sensitive config)
-echo "Creating Secrets Manager secret..."
-SECRET_ARN=$(aws secretsmanager create-secret \
-  --name "careerhelper/${STAGE}/database" \
-  --description "Database credentials for CareerHelper" \
-  --secret-string "{\"username\":\"careerhelper\",\"password\":\"$(openssl rand -hex 16)\"}" \
-  --region "${REGION}" \
-  --query 'ARN' \
-  --output text)
+echo "Creating or updating Secrets Manager secret..."
+SECRET_EXISTS=$(aws secretsmanager describe-secret --secret-id "careerhelper/${STAGE}/database" --region "${REGION}" --query 'ARN' --output text 2>/dev/null || echo "")
 
-echo "Created secret: ${SECRET_ARN}"
-
-# Update Lambda environment variables to include secret references
-echo "Updating Lambda environment variables..."
-aws lambda update-function-configuration \
-  --function-name "careerhelper-backend-${STAGE}-getUser" \
-  --environment "Variables={USERS_TABLE=careerhelper-users-${STAGE},JWT_SECRET=/careerhelper/${STAGE}/jwt-secret}" \
-  --region "${REGION}"
+if [ -z "$SECRET_EXISTS" ]; then
+  SECRET_ARN=$(aws secretsmanager create-secret \
+    --name "careerhelper/${STAGE}/database" \
+    --description "Database credentials for CareerHelper" \
+    --secret-string "{\"username\":\"careerhelper\",\"password\":\"$(openssl rand -hex 16)\"}" \
+    --region "${REGION}" \
+    --query 'ARN' \
+    --output text)
+  echo "Created secret: ${SECRET_ARN}"
+else
+  aws secretsmanager update-secret \
+    --secret-id "careerhelper/${STAGE}/database" \
+    --secret-string "{\"username\":\"careerhelper\",\"password\":\"$(openssl rand -hex 16)\"}" \
+    --region "${REGION}"
+  SECRET_ARN=$SECRET_EXISTS
+  echo "Updated existing secret: ${SECRET_ARN}"
+fi
 
 echo "Secrets setup complete!"
 echo ""
