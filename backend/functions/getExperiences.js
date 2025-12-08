@@ -4,6 +4,7 @@ const {
   QueryCommand,
 } = require('@aws-sdk/lib-dynamodb');
 const Logger = require('../utils/logger');
+const { ErrorHandler } = require('../utils/errorHandler');
 
 exports.handler = async event => {
   const { userId } = event.pathParameters;
@@ -29,15 +30,13 @@ exports.handler = async event => {
     logger.info('Experiences retrieved successfully', {
       items: result.Items?.length || 0,
     });
-    return {
-      statusCode: 200,
-      body: JSON.stringify(result.Items),
-    };
+    return ErrorHandler.createSuccessResponse(result.Items || []);
   } catch (error) {
     logger.error('Failed to retrieve experiences', {}, error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Internal server error' }),
-    };
+    return ErrorHandler.createErrorResponse(error, {
+      component: 'getExperiences',
+      requestId: event?.requestContext?.requestId,
+      userId,
+    });
   }
 };

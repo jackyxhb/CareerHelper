@@ -4,6 +4,7 @@ const {
   ScanCommand,
 } = require('@aws-sdk/lib-dynamodb');
 const Logger = require('../utils/logger');
+const { ErrorHandler } = require('../utils/errorHandler');
 
 exports.handler = async () => {
   const logger = new Logger({ component: 'getJobs' });
@@ -19,15 +20,11 @@ exports.handler = async () => {
     logger.info('Jobs retrieved successfully', {
       items: result.Items?.length || 0,
     });
-    return {
-      statusCode: 200,
-      body: JSON.stringify(result.Items),
-    };
+    return ErrorHandler.createSuccessResponse(result.Items || []);
   } catch (error) {
     logger.error('Failed to retrieve jobs', {}, error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Internal server error' }),
-    };
+    return ErrorHandler.createErrorResponse(error, {
+      component: 'getJobs',
+    });
   }
 };

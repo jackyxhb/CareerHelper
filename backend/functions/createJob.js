@@ -2,6 +2,7 @@ const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 const { v4: uuidv4 } = require('uuid');
 const Logger = require('../utils/logger');
+const { ErrorHandler } = require('../utils/errorHandler');
 
 exports.handler = async event => {
   const { title, company, location, description, salary } = JSON.parse(
@@ -37,19 +38,19 @@ exports.handler = async event => {
       company,
       location,
     });
-    return {
-      statusCode: 201,
-      body: JSON.stringify({ jobId, message: 'Job created successfully' }),
-    };
+    return ErrorHandler.createSuccessResponse(
+      { jobId, message: 'Job created successfully' },
+      201
+    );
   } catch (error) {
     logger.error(
       'Failed to create job',
       { company, location, hasSalary: salary !== undefined },
       error
     );
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Internal server error' }),
-    };
+    return ErrorHandler.createErrorResponse(error, {
+      component: 'createJob',
+      requestId: event?.requestContext?.requestId,
+    });
   }
 };

@@ -7,6 +7,24 @@ provider:
   runtime: nodejs18.x
   stage: dev
   region: us-east-1
+  httpApi:
+    cors:
+      allowedOrigins:
+        - http://localhost:3000
+        - https://careerhelper-web-dev-1765124463.s3.us-east-1.amazonaws.com
+      allowedMethods:
+        - OPTIONS
+        - GET
+        - POST
+        - PUT
+        - DELETE
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+        - X-Amz-Date
+        - X-Amz-Security-Token
+        - X-Api-Key
+      allowCredentials: false
   environment:
     USERS_TABLE: ${self:custom.usersTable}
     JOBS_TABLE: ${self:custom.jobsTable}
