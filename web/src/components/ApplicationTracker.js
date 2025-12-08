@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { API } from 'aws-amplify';
+import { logError, logInfo } from '../utils/logger';
 
 function ApplicationTracker() {
   const [applications, setApplications] = useState([]);
@@ -21,8 +22,12 @@ function ApplicationTracker() {
 
       const jobsData = await API.get('CareerHelperAPI', '/jobs');
       setJobs(jobsData || []);
+      logInfo('Application and job data fetched', {
+        applications: applicationsData?.length || 0,
+        jobs: jobsData?.length || 0,
+      });
     } catch (error) {
-      console.error('Error fetching data:', error);
+      logError('Failed to fetch application tracker data', error);
     }
   };
 

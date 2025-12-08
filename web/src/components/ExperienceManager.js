@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { API } from 'aws-amplify';
+import { API, Auth } from 'aws-amplify';
+import { logError, logInfo } from '../utils/logger';
 
 function ExperienceManager() {
   const [experiences, setExperiences] = useState([]);
@@ -24,8 +25,11 @@ function ExperienceManager() {
         `/experiences/${testUserId}`
       );
       setExperiences(experiencesData || []);
+      logInfo('Experiences fetched for web manager', {
+        items: experiencesData?.length || 0,
+      });
     } catch (error) {
-      console.error('Error fetching experiences:', error);
+      logError('Failed to fetch experiences on web', error);
     }
   };
 
@@ -46,9 +50,16 @@ function ExperienceManager() {
         endDate: '',
         description: '',
       });
+      logInfo('Experience created via web form', {
+        company: formData.company,
+        title: formData.title,
+      });
       fetchExperiences();
     } catch (error) {
-      console.error('Error creating experience:', error);
+      logError('Failed to create experience on web', error, {
+        company: formData.company,
+        title: formData.title,
+      });
     }
   };
 

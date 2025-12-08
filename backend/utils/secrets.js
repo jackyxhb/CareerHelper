@@ -1,10 +1,12 @@
 const AWS = require('aws-sdk');
+const Logger = require('./logger');
 
 class SecretsManager {
   constructor() {
     this.ssm = new AWS.SSM();
     this.secretsManager = new AWS.SecretsManager();
     this.cache = new Map();
+    this.logger = new Logger({ component: 'SecretsManager' });
   }
 
   /**
@@ -30,7 +32,7 @@ class SecretsManager {
       this.cache.set(cacheKey, value);
       return value;
     } catch (error) {
-      console.error(`Failed to retrieve SSM parameter ${name}:`, error);
+      this.logger.error('Failed to retrieve SSM parameter', { name }, error);
       throw error;
     }
   }
@@ -58,7 +60,7 @@ class SecretsManager {
       this.cache.set(cacheKey, value);
       return value;
     } catch (error) {
-      console.error(`Failed to retrieve secret ${secretId}:`, error);
+      this.logger.error('Failed to retrieve secret', { secretId }, error);
       throw error;
     }
   }

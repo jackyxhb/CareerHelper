@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList } from 'react-native';
 import { API, Auth } from 'aws-amplify';
+import { logError } from '../utils/logger';
 
 function ApplicationScreen() {
   const [applications, setApplications] = useState([]);
@@ -18,7 +19,7 @@ function ApplicationScreen() {
       );
       setApplications(applicationsData);
     } catch (error) {
-      console.error('Error fetching applications:', error);
+      logError('Failed to fetch applications', error);
     }
   };
 

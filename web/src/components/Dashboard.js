@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { API } from 'aws-amplify';
+import { logError } from '../utils/logger';
 
 function Dashboard() {
   const [user, setUser] = useState(null);
@@ -31,7 +32,7 @@ function Dashboard() {
       );
       setApplications(applicationsData || []);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      logError('Failed to fetch dashboard data', error);
     }
   };
 

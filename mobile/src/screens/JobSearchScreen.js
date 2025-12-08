@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Button } from 'react-native';
 import { API } from 'aws-amplify';
+import { logError } from '../utils/logger';
 
 function JobSearchScreen() {
   const [jobs, setJobs] = useState([]);
@@ -14,7 +15,7 @@ function JobSearchScreen() {
       const jobsData = await API.get('CareerHelperAPI', '/jobs');
       setJobs(jobsData);
     } catch (error) {
-      console.error('Error fetching jobs:', error);
+      logError('Failed to fetch jobs', error);
     }
   };
 

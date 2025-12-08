@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 /**
  * Structured logging utility for CareerHelper Lambda functions
  */

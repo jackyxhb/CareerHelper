@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { API } from 'aws-amplify';
+import { logError } from '../utils/logger';
 
 function JobSearch() {
   const [jobs, setJobs] = useState([]);
@@ -14,7 +15,7 @@ function JobSearch() {
       const jobsData = await API.get('CareerHelperAPI', '/jobs');
       setJobs(jobsData);
     } catch (error) {
-      console.error('Error fetching jobs:', error);
+      logError('Failed to fetch jobs on web', error);
     }
   };
 

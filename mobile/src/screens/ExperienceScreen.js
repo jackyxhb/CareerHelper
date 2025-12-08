@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TextInput, Button } from 'react-native';
 import { API, Auth } from 'aws-amplify';
+import { logError, logInfo } from '../utils/logger';
 
 function ExperienceScreen() {
   const [experiences, setExperiences] = useState([]);
@@ -21,7 +22,7 @@ function ExperienceScreen() {
       );
       setExperiences(experiencesData);
     } catch (error) {
-      console.error('Error fetching experiences:', error);
+      logError('Failed to fetch experiences', error);
     }
   };
 
@@ -41,8 +42,12 @@ function ExperienceScreen() {
       setCompany('');
       setDescription('');
       fetchExperiences();
+      logInfo('Experience added successfully');
     } catch (error) {
-      console.error('Error adding experience:', error);
+      logError('Failed to add experience', error, {
+        title,
+        company,
+      });
     }
   };
 

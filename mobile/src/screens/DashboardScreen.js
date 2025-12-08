@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button } from 'react-native';
 import { Auth } from 'aws-amplify';
+import { logError } from '../utils/logger';
 
 function DashboardScreen({ navigation }) {
   const [user, setUser] = useState(null);
@@ -14,7 +15,7 @@ function DashboardScreen({ navigation }) {
       const currentUser = await Auth.currentAuthenticatedUser();
       setUser(currentUser);
     } catch (error) {
-      console.error(error);
+      logError('Failed to fetch current user', error);
     }
   };
 
