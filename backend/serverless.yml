@@ -88,6 +88,8 @@ functions:
       - httpApi:
           path: /users
           method: post
+          authorizer:
+            name: cognitoAuthorizer
 
   getJobs:
     handler: functions/getJobs.handler
@@ -116,6 +118,8 @@ functions:
       - httpApi:
           path: /jobs
           method: post
+          authorizer:
+            name: cognitoAuthorizer
 
   getExperiences:
     handler: functions/getExperiences.handler
@@ -130,6 +134,8 @@ functions:
       - httpApi:
           path: /experiences
           method: post
+          authorizer:
+            name: cognitoAuthorizer
 
   getApplications:
     handler: functions/getApplications.handler
@@ -144,6 +150,8 @@ functions:
       - httpApi:
           path: /applications
           method: post
+          authorizer:
+            name: cognitoAuthorizer
 
   issueResumeUpload:
     handler: functions/issueResumeUpload.handler
