@@ -47,8 +47,10 @@ exports.handler = requestHandler.createResponse(async event => {
     },
   });
 
-  const responseItems = await Promise.all(
-    items.map(async item => {
+  const responseItems = [];
+
+  for (const item of items) {
+    try {
       const downloadUrl = await getSignedUrl(
         s3Client,
         new GetObjectCommand({
@@ -58,7 +60,7 @@ exports.handler = requestHandler.createResponse(async event => {
         { expiresIn: 300 }
       );
 
-      return {
+      responseItems.push({
         resumeId: item.resumeId,
         fileName: item.fileName,
         contentType: item.contentType,
@@ -67,9 +69,29 @@ exports.handler = requestHandler.createResponse(async event => {
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
         downloadUrl,
-      };
-    })
-  );
+      });
+    } catch (error) {
+      logger.warn(
+        'Failed to generate resume download URL',
+        {
+          resumeId: item.resumeId,
+          objectKey: item.objectKey,
+        },
+        error
+      );
+
+      responseItems.push({
+        resumeId: item.resumeId,
+        fileName: item.fileName,
+        contentType: item.contentType,
+        objectKey: item.objectKey,
+        status: 'MISSING_ASSET',
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+        downloadUrl: null,
+      });
+    }
+  }
 
   logger.info('Fetched resume metadata', {
     count: responseItems.length,
