@@ -192,7 +192,7 @@ resources:
     UsersTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: Users
+        TableName: Users-${self:provider.stage}
         AttributeDefinitions:
           - AttributeName: userId
             AttributeType: S
@@ -204,7 +204,7 @@ resources:
     JobsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: Jobs
+        TableName: Jobs-${self:provider.stage}
         AttributeDefinitions:
           - AttributeName: jobId
             AttributeType: S
@@ -216,7 +216,7 @@ resources:
     ExperiencesTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: Experiences
+        TableName: Experiences-${self:provider.stage}
         AttributeDefinitions:
           - AttributeName: userId
             AttributeType: S
@@ -232,7 +232,7 @@ resources:
     ApplicationsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: Applications
+        TableName: Applications-${self:provider.stage}
         AttributeDefinitions:
           - AttributeName: userId
             AttributeType: S
@@ -248,7 +248,7 @@ resources:
     ResumesTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: Resumes
+        TableName: Resumes-${self:provider.stage}
         AttributeDefinitions:
           - AttributeName: userId
             AttributeType: S
