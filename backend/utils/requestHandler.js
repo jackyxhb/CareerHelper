@@ -217,6 +217,7 @@ class RequestHandler {
         function: this.functionName,
         requestId,
       });
+      this.startTime = Date.now();
 
       try {
         this.logRequestStart(event);
