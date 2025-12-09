@@ -1,56 +1,68 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 const { v4: uuidv4 } = require('uuid');
-const Logger = require('../utils/logger');
 const { ErrorHandler } = require('../utils/errorHandler');
+const {
+  RequestHandler,
+  ValidationSchemas,
+} = require('../utils/requestHandler');
 
-exports.handler = async event => {
-  const { title, company, location, description, salary } = JSON.parse(
-    event.body
-  );
+const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION });
+const documentClient = DynamoDBDocumentClient.from(dynamoClient);
+const requestHandler = new RequestHandler('createJob');
 
-  const logger = new Logger({
-    component: 'createJob',
-    requestId: event?.requestContext?.requestId,
-  });
-
-  const client = new DynamoDBClient({ region: process.env.AWS_REGION });
-  const dynamodb = DynamoDBDocumentClient.from(client);
-
+exports.handler = requestHandler.createResponse(async event => {
+  const payload = requestHandler.parseBody(event, ['title', 'company']);
   const jobId = uuidv4();
-  const params = {
-    TableName: process.env.JOBS_TABLE,
-    Item: {
-      jobId,
-      title,
-      company,
-      location,
-      description,
-      salary,
-      postedAt: new Date().toISOString(),
-    },
+  const postedAt = new Date().toISOString();
+
+  const jobRecord = {
+    jobId,
+    title: payload.title,
+    company: payload.company,
+    postedAt,
   };
 
+  if (payload.location !== undefined && payload.location !== null) {
+    jobRecord.location = payload.location;
+  }
+  if (payload.description !== undefined && payload.description !== null) {
+    jobRecord.description = payload.description;
+  }
+  if (payload.salary !== undefined && payload.salary !== null) {
+    jobRecord.salary = payload.salary;
+  }
+
+  requestHandler.validateInput(jobRecord, ValidationSchemas.job);
+
   try {
-    await dynamodb.send(new PutCommand(params));
-    logger.info('Job created successfully', {
-      jobId,
-      company,
-      location,
-    });
-    return ErrorHandler.createSuccessResponse(
-      { jobId, message: 'Job created successfully' },
-      201
+    await documentClient.send(
+      new PutCommand({
+        TableName: process.env.JOBS_TABLE,
+        Item: jobRecord,
+      })
     );
   } catch (error) {
-    logger.error(
+    requestHandler.logger.error(
       'Failed to create job',
-      { company, location, hasSalary: salary !== undefined },
+      {
+        company: payload.company,
+        location: payload.location,
+        hasSalary: payload.salary !== undefined,
+      },
       error
     );
-    return ErrorHandler.createErrorResponse(error, {
-      component: 'createJob',
-      requestId: event?.requestContext?.requestId,
-    });
+    throw error;
   }
-};
+
+  requestHandler.logger.info('Job created successfully', {
+    jobId,
+    company: payload.company,
+    location: payload.location,
+  });
+
+  return ErrorHandler.createSuccessResponse(
+    { jobId, message: 'Job created successfully' },
+    201
+  );
+});

@@ -25,9 +25,17 @@ describe('Applications API integration', () => {
     dynamoMock.on(PutCommand).resolves({});
 
     const response = await createApplication.handler({
-      requestContext: { requestId: 'req-1' },
+      requestContext: {
+        requestId: 'req-1',
+        authorizer: {
+          jwt: {
+            claims: {
+              sub: 'user-1',
+            },
+          },
+        },
+      },
       body: JSON.stringify({
-        userId: 'user-1',
         jobId: 'job-9',
         status: 'Applied',
         notes: 'Urgent follow-up',
@@ -40,6 +48,7 @@ describe('Applications API integration', () => {
     expect(calls).to.have.lengthOf(1);
     expect(calls[0].args[0].input.TableName).to.equal('applications-table');
     expect(calls[0].args[0].input.Item.userId).to.equal('user-1');
+    expect(calls[0].args[0].input.Item.status).to.equal('APPLIED');
   });
 
   it('returns applications for a user', async () => {

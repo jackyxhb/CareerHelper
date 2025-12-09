@@ -1,67 +1,105 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 const { v4: uuidv4 } = require('uuid');
-const Logger = require('../utils/logger');
-const { ErrorHandler } = require('../utils/errorHandler');
+const {
+  ErrorHandler,
+  UnauthorizedError,
+} = require('../utils/errorHandler');
+const {
+  RequestHandler,
+  ValidationSchemas,
+} = require('../utils/requestHandler');
 
-exports.handler = async event => {
-  const {
-    userId,
-    jobId,
-    status,
-    notes,
-    jobTitle,
-    jobCompany,
-    jobLocation,
-    jobSource,
-  } = JSON.parse(event.body);
+const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION });
+const documentClient = DynamoDBDocumentClient.from(dynamoClient);
+const requestHandler = new RequestHandler('createApplication');
 
-  const logger = new Logger({
-    component: 'createApplication',
-    requestId: event?.requestContext?.requestId,
-    userId,
-  });
+function extractUserId(event) {
+  const jwtClaims =
+    event?.requestContext?.authorizer?.jwt?.claims ||
+    event?.requestContext?.authorizer?.claims ||
+    {};
 
-  const client = new DynamoDBClient({ region: process.env.AWS_REGION });
-  const dynamodb = DynamoDBDocumentClient.from(client);
+  return (
+    jwtClaims['cognito:username'] ||
+    jwtClaims.sub ||
+    event?.requestContext?.authorizer?.principalId ||
+    event?.requestContext?.authorizer?.iam?.cognitoIdentity?.identityId ||
+    null
+  );
+}
 
+exports.handler = requestHandler.createResponse(async event => {
+  const userId = extractUserId(event);
+
+  if (!userId) {
+    throw new UnauthorizedError('Authentication required to create application');
+  }
+
+  const payload = requestHandler.parseBody(event, ['jobId', 'status']);
   const applicationId = uuidv4();
-  const params = {
-    TableName: process.env.APPLICATIONS_TABLE,
-    Item: {
-      userId,
-      applicationId,
-      jobId,
-      status,
-      appliedAt: new Date().toISOString(),
-      notes,
-      ...(jobTitle ? { jobTitle } : {}),
-      ...(jobCompany ? { jobCompany } : {}),
-      ...(jobLocation ? { jobLocation } : {}),
-      ...(jobSource ? { jobSource } : {}),
-    },
+  const appliedAt = new Date().toISOString();
+  const normalizedStatus =
+    typeof payload.status === 'string'
+      ? payload.status.toUpperCase()
+      : payload.status;
+
+  const applicationRecord = {
+    userId,
+    applicationId,
+    jobId: payload.jobId,
+    status: normalizedStatus,
+    appliedAt,
   };
 
+  if (payload.notes !== undefined && payload.notes !== null) {
+    applicationRecord.notes = payload.notes;
+  }
+  if (payload.jobTitle !== undefined && payload.jobTitle !== null) {
+    applicationRecord.jobTitle = payload.jobTitle;
+  }
+  if (payload.jobCompany !== undefined && payload.jobCompany !== null) {
+    applicationRecord.jobCompany = payload.jobCompany;
+  }
+  if (payload.jobLocation !== undefined && payload.jobLocation !== null) {
+    applicationRecord.jobLocation = payload.jobLocation;
+  }
+  if (payload.jobSource !== undefined && payload.jobSource !== null) {
+    applicationRecord.jobSource = payload.jobSource;
+  }
+
+  requestHandler.validateInput(applicationRecord, ValidationSchemas.application);
+
   try {
-    await dynamodb.send(new PutCommand(params));
-    logger.info('Application created successfully', {
-      applicationId,
-      jobId,
-      status,
-    });
-    return ErrorHandler.createSuccessResponse(
-      {
-        applicationId,
-        message: 'Application created successfully',
-      },
-      201
+    await documentClient.send(
+      new PutCommand({
+        TableName: process.env.APPLICATIONS_TABLE,
+        Item: applicationRecord,
+      })
     );
   } catch (error) {
-    logger.error('Failed to create application', { jobId, status }, error);
-    return ErrorHandler.createErrorResponse(error, {
-      component: 'createApplication',
-      requestId: event?.requestContext?.requestId,
-      userId,
-    });
+    requestHandler.logger.error(
+      'Failed to create application',
+      {
+        jobId: payload.jobId,
+        status: normalizedStatus,
+      },
+      error
+    );
+    throw error;
   }
-};
+
+  requestHandler.logger.info('Application created successfully', {
+    applicationId,
+    jobId: payload.jobId,
+    status: normalizedStatus,
+  });
+
+  return ErrorHandler.createSuccessResponse(
+    {
+      applicationId,
+      message: 'Application created successfully',
+    },
+    201
+  );
+});
