@@ -4,7 +4,7 @@ frameworkVersion: '3'
 
 plugins:
   - serverless-plugin-typescript
-
+  - serverless-offline
 
 provider:
   name: aws
@@ -79,6 +79,14 @@ provider:
       Resource: "arn:aws:ssm:${self:provider.region}:*:parameter/careerhelper/${self:provider.stage}/*"
 
 custom:
+  dynamodb:
+    stages:
+      - dev
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+      seed: true
   usersTable: !Ref UsersTable
   jobsTable: !Ref JobsTable
   experiencesTable: !Ref ExperiencesTable
@@ -102,8 +110,8 @@ functions:
       - httpApi:
           path: /users
           method: post
-          authorizer:
-            name: cognitoAuthorizer
+#          authorizer:
+#            name: cognitoAuthorizer
 
   getJobs:
     handler: functions/getJobs.handler
@@ -132,8 +140,8 @@ functions:
       - httpApi:
           path: /jobs
           method: post
-          authorizer:
-            name: cognitoAuthorizer
+#          authorizer:
+#            name: cognitoAuthorizer
 
   getExperiences:
     handler: functions/getExperiences.handler
@@ -148,8 +156,8 @@ functions:
       - httpApi:
           path: /experiences
           method: post
-          authorizer:
-            name: cognitoAuthorizer
+#          authorizer:
+#            name: cognitoAuthorizer
 
   getApplications:
     handler: functions/getApplications.handler
@@ -164,8 +172,8 @@ functions:
       - httpApi:
           path: /applications
           method: post
-          authorizer:
-            name: cognitoAuthorizer
+#          authorizer:
+#            name: cognitoAuthorizer
 
   issueResumeUpload:
     handler: functions/issueResumeUpload.handler
@@ -173,8 +181,8 @@ functions:
       - httpApi:
           path: /uploads/resume
           method: post
-          authorizer:
-            name: cognitoAuthorizer
+#          authorizer:
+#            name: cognitoAuthorizer
 
   getResumes:
     handler: functions/getResumes.handler
@@ -182,8 +190,8 @@ functions:
       - httpApi:
           path: /uploads/resume
           method: get
-          authorizer:
-            name: cognitoAuthorizer
+#          authorizer:
+#            name: cognitoAuthorizer
 
   deleteResume:
     handler: functions/deleteResume.handler
@@ -191,8 +199,8 @@ functions:
       - httpApi:
           path: /uploads/resume/{resumeId}
           method: delete
-          authorizer:
-            name: cognitoAuthorizer
+#          authorizer:
+#            name: cognitoAuthorizer
 
   health:
     handler: functions/health.handler

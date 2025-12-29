@@ -6,7 +6,9 @@
   "scripts": {
     "test": "mocha -r ts-node/register test/**/*.test.js",
     "test:coverage": "nyc mocha -r ts-node/register test/**/*.test.js",
-    "deploy": "serverless deploy"
+    "deploy": "serverless deploy",
+    "start": "sls offline start --httpPort 3001",
+    "install:db": "sls dynamodb install"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.400.0",
@@ -31,6 +33,8 @@
     "@types/aws-lambda": "^8.10.0",
     "@types/uuid": "^9.0.0",
     "@types/minimatch": "^5.1.0",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "serverless-offline": "^13.3.0",
+    "serverless-dynamodb-local": "^0.2.40"
   }
 }

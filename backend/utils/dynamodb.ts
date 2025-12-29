@@ -47,14 +47,23 @@ export default class DynamoDBUtil {
     if (options.client) {
       this.client = options.client;
     } else {
-      // Configure DynamoDB client with retry logic
-      this.client = new DynamoDBClient({
-        region: process.env.AWS_REGION,
+      const config: any = {
+        region: process.env.AWS_REGION || 'us-east-1',
         maxAttempts: options.maxAttempts || 3,
         retryMode: 'adaptive', // Use adaptive retry strategy
         requestTimeout: options.requestTimeout || 5000,
         ...options.clientConfig,
-      });
+      };
+
+      if (process.env.IS_OFFLINE) {
+        config.endpoint = 'http://localhost:8000';
+        config.credentials = {
+          accessKeyId: 'DEFAULT_ACCESS_KEY',
+          secretAccessKey: 'DEFAULT_SECRET_ACCESS_KEY',
+        };
+      }
+
+      this.client = new DynamoDBClient(config);
     }
 
     const translateConfig: TranslateConfig = {
