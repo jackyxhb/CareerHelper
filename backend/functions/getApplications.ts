@@ -1,13 +1,22 @@
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const {
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import {
   DynamoDBDocumentClient,
   QueryCommand,
-} = require('@aws-sdk/lib-dynamodb');
-const Logger = require('../utils/logger');
-const { ErrorHandler } = require('../utils/errorHandler');
+} from '@aws-sdk/lib-dynamodb';
+import Logger from '../utils/logger';
+import { ErrorHandler } from '../utils/errorHandler';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 
-exports.handler = async event => {
-  const { userId } = event.pathParameters;
+export const handler = async (event: APIGatewayProxyEvent) => {
+  const { userId } = event.pathParameters || {};
+
+  if (!userId) {
+    return ErrorHandler.createErrorResponse(new Error('Missing userId'), {
+      component: 'getApplications',
+      requestId: event?.requestContext?.requestId,
+    });
+  }
+
   const logger = new Logger({
     component: 'getApplications',
     requestId: event?.requestContext?.requestId,
@@ -31,7 +40,7 @@ exports.handler = async event => {
       items: result.Items?.length || 0,
     });
     return ErrorHandler.createSuccessResponse(result.Items || []);
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to retrieve applications', {}, error);
     return ErrorHandler.createErrorResponse(error, {
       component: 'getApplications',

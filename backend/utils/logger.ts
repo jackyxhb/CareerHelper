@@ -1,10 +1,29 @@
 /* eslint-disable no-console */
 
+export interface LogContext {
+  service: string;
+  version: string;
+  [key: string]: any;
+}
+
+export interface LogEntry extends LogContext {
+  timestamp: string;
+  level: string;
+  message: string;
+  error?: {
+    name: string;
+    message: string;
+    stack?: string;
+  };
+}
+
 /**
  * Structured logging utility for CareerHelper Lambda functions
  */
-class Logger {
-  constructor(context = {}) {
+export default class Logger {
+  private context: LogContext;
+
+  constructor(context: Record<string, any> = {}) {
     this.context = {
       service: 'CareerHelper',
       version: '0.0.1',
@@ -12,8 +31,13 @@ class Logger {
     };
   }
 
-  _formatLog(level, message, data = {}, error = null) {
-    const logEntry = {
+  private _formatLog(
+    level: string,
+    message: string,
+    data: Record<string, any> = {},
+    error: Error | null = null
+  ): LogEntry {
+    const logEntry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
       message,
@@ -32,25 +56,23 @@ class Logger {
     return logEntry;
   }
 
-  info(message, data = {}) {
+  info(message: string, data: Record<string, any> = {}): void {
     const logEntry = this._formatLog('INFO', message, data);
     console.log(JSON.stringify(logEntry));
   }
 
-  warn(message, data = {}, error = null) {
+  warn(message: string, data: Record<string, any> = {}, error: Error | null = null): void {
     const logEntry = this._formatLog('WARN', message, data, error);
     console.warn(JSON.stringify(logEntry));
   }
 
-  error(message, data = {}, error = null) {
+  error(message: string, data: Record<string, any> = {}, error: Error | null = null): void {
     const logEntry = this._formatLog('ERROR', message, data, error);
     console.error(JSON.stringify(logEntry));
   }
 
-  debug(message, data = {}) {
+  debug(message: string, data: Record<string, any> = {}): void {
     const logEntry = this._formatLog('DEBUG', message, data);
     console.debug(JSON.stringify(logEntry));
   }
 }
-
-module.exports = Logger;

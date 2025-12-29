@@ -1,12 +1,24 @@
+import Logger from './logger';
+
+export interface ApiErrorResponse {
+  statusCode: number;
+  headers: Record<string, string>;
+  body: string;
+}
+
+export interface ApiSuccessResponse {
+  statusCode: number;
+  headers: Record<string, string>;
+  body: string;
+}
+
 /**
  * Error handling utility for CareerHelper Lambda functions
  */
-class ErrorHandler {
-  static createErrorResponse(error, context = {}) {
-    const logger = require('./logger');
-
+export class ErrorHandler {
+  static createErrorResponse(error: any, context: Record<string, any> = {}): ApiErrorResponse {
     // Default error mappings
-    const errorMappings = {
+    const errorMappings: Record<string, { statusCode: number; message: string }> = {
       ValidationError: { statusCode: 400, message: 'Invalid input data' },
       NotFoundError: { statusCode: 404, message: 'Resource not found' },
       UnauthorizedError: { statusCode: 401, message: 'Unauthorized access' },
@@ -81,7 +93,7 @@ class ErrorHandler {
     }
 
     // Log the error
-    const log = new logger(context);
+    const log = new Logger(context);
     log.error(
       'Request failed',
       {
@@ -113,7 +125,7 @@ class ErrorHandler {
     };
   }
 
-  static createSuccessResponse(data, statusCode = 200, headers = {}) {
+  static createSuccessResponse(data: any, statusCode = 200, headers: Record<string, string> = {}): ApiSuccessResponse {
     return {
       statusCode,
       headers: {
@@ -129,54 +141,44 @@ class ErrorHandler {
 }
 
 // Custom error classes
-class ValidationError extends Error {
-  constructor(message) {
+export class ValidationError extends Error {
+  constructor(message: string) {
     super(message);
     this.name = 'ValidationError';
   }
 }
 
-class NotFoundError extends Error {
-  constructor(message) {
+export class NotFoundError extends Error {
+  constructor(message: string) {
     super(message);
     this.name = 'NotFoundError';
   }
 }
 
-class UnauthorizedError extends Error {
-  constructor(message) {
+export class UnauthorizedError extends Error {
+  constructor(message: string) {
     super(message);
     this.name = 'UnauthorizedError';
   }
 }
 
-class ForbiddenError extends Error {
-  constructor(message) {
+export class ForbiddenError extends Error {
+  constructor(message: string) {
     super(message);
     this.name = 'ForbiddenError';
   }
 }
 
-class ConflictError extends Error {
-  constructor(message) {
+export class ConflictError extends Error {
+  constructor(message: string) {
     super(message);
     this.name = 'ConflictError';
   }
 }
 
-class DynamoDBError extends Error {
-  constructor(message) {
+export class DynamoDBError extends Error {
+  constructor(message: string) {
     super(message);
     this.name = 'DynamoDBError';
   }
 }
-
-module.exports = {
-  ErrorHandler,
-  ValidationError,
-  NotFoundError,
-  UnauthorizedError,
-  ForbiddenError,
-  ConflictError,
-  DynamoDBError,
-};

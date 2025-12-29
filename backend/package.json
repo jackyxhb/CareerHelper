@@ -4,8 +4,8 @@
   "description": "Backend for CareerHelper",
   "main": "handler.js",
   "scripts": {
-    "test": "mocha test/**/*.test.js",
-    "test:coverage": "nyc mocha test/**/*.test.js",
+    "test": "mocha -r ts-node/register test/**/*.test.js",
+    "test:coverage": "nyc mocha -r ts-node/register test/**/*.test.js",
     "deploy": "serverless deploy"
   },
   "dependencies": {
@@ -24,6 +24,13 @@
     "sinon": "^15.0.0",
     "proxyquire": "^2.1.3",
     "nyc": "^15.1.0",
-    "aws-sdk-client-mock": "^4.1.0"
+    "aws-sdk-client-mock": "^4.1.0",
+    "typescript": "^5.0.0",
+    "serverless-plugin-typescript": "^2.1.0",
+    "@types/node": "^18.0.0",
+    "@types/aws-lambda": "^8.10.0",
+    "@types/uuid": "^9.0.0",
+    "@types/minimatch": "^5.1.0",
+    "ts-node": "^10.9.1"
   }
 }

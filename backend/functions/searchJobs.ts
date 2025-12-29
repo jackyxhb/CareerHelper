@@ -1,20 +1,21 @@
-const Logger = require('../utils/logger');
-const { ErrorHandler, ValidationError } = require('../utils/errorHandler');
-const { RequestHandler } = require('../utils/requestHandler');
-const { secretsManager } = require('../utils/secrets');
+import Logger from '../utils/logger';
+import { ErrorHandler, ValidationError } from '../utils/errorHandler';
+import { RequestHandler } from '../utils/requestHandler';
+import { secretsManager } from '../utils/secrets';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 
 const requestHandler = new RequestHandler('searchJobs');
-const fetchFn = global.fetch || require('node-fetch');
+// Native fetch is available in Node 18
 
 const DEFAULT_API_URL = process.env.JOB_SEARCH_API_URL || 'https://jsearch.p.rapidapi.com/search';
 const DEFAULT_API_HOST = process.env.JOB_SEARCH_API_HOST || 'jsearch.p.rapidapi.com';
 
-const normalizeLocation = job => {
+const normalizeLocation = (job: any) => {
   const parts = [job.job_city, job.job_state, job.job_country].filter(Boolean);
   return parts.join(', ');
 };
 
-const normalizeJob = job => ({
+const normalizeJob = (job: any) => ({
   jobId: `external-${job.job_id}`,
   title: job.job_title,
   company: job.employer_name || 'Unknown Employer',
@@ -24,15 +25,15 @@ const normalizeJob = job => ({
   publishedAt: job.job_posted_at_datetime_utc,
   salary: job.job_salary_currency && (job.job_min_salary || job.job_max_salary)
     ? {
-        currency: job.job_salary_currency,
-        min: job.job_min_salary,
-        max: job.job_max_salary,
-      }
+      currency: job.job_salary_currency,
+      min: job.job_min_salary,
+      max: job.job_max_salary,
+    }
     : null,
   source: 'JSearch',
 });
 
-exports.handler = requestHandler.createResponse(async event => {
+export const handler = requestHandler.createResponse(async (event: APIGatewayProxyEvent) => {
   const logger = new Logger({ component: 'searchJobs', requestId: event?.requestContext?.requestId });
 
   const queryParams = event.queryStringParameters || {};
@@ -57,7 +58,7 @@ exports.handler = requestHandler.createResponse(async event => {
   }
 
   try {
-    const response = await fetchFn(url, {
+    const response = await fetch(url.toString(), {
       method: 'GET',
       headers: {
         'X-RapidAPI-Key': apiKey,
@@ -80,7 +81,7 @@ exports.handler = requestHandler.createResponse(async event => {
       throw new Error(`External job search failed with status ${response.status}`);
     }
 
-    const payload = await response.json();
+    const payload: any = await response.json();
     const externalJobs = Array.isArray(payload?.data)
       ? payload.data.map(normalizeJob)
       : [];
@@ -98,7 +99,7 @@ exports.handler = requestHandler.createResponse(async event => {
       jobs: externalJobs,
       total: payload?.total_jobs ?? externalJobs.length,
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to execute external job search', { query, location }, error);
     throw error;
   }

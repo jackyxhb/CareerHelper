@@ -1,11 +1,37 @@
-const { ValidationError } = require('./errorHandler');
-const Logger = require('./logger');
+import { ValidationError } from './errorHandler';
+import Logger from './logger';
+import { ApiErrorResponse, ApiSuccessResponse, ErrorHandler } from './errorHandler';
+
+export interface RequestHandlerOptions {
+  requestId?: string;
+}
+
+export interface ValidationRule {
+  type?: 'string' | 'number' | 'array' | 'boolean' | 'object';
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+  pattern?: RegExp;
+  minItems?: number;
+  maxItems?: number;
+  validate?: (value: any) => string | null | undefined;
+}
+
+export interface ValidationSchema {
+  [field: string]: ValidationRule;
+}
 
 /**
  * Request handling utility for CareerHelper Lambda functions
  */
-class RequestHandler {
-  constructor(functionName, options = {}) {
+export class RequestHandler {
+  private functionName: string;
+  public logger: Logger;
+  private startTime: number;
+
+  constructor(functionName: string, options: RequestHandlerOptions = {}) {
     this.functionName = functionName;
     this.logger = new Logger({
       function: functionName,
@@ -17,7 +43,7 @@ class RequestHandler {
   /**
    * Parse and validate request body
    */
-  parseBody(event, requiredFields = []) {
+  parseBody<T = any>(event: any, requiredFields: string[] = []): T {
     try {
       if (!event.body) {
         throw new ValidationError('Request body is required');
@@ -42,8 +68,8 @@ class RequestHandler {
         requiredFields,
       });
 
-      return body;
-    } catch (error) {
+      return body as T;
+    } catch (error: any) {
       if (error instanceof ValidationError) {
         throw error;
       }
@@ -54,7 +80,7 @@ class RequestHandler {
   /**
    * Extract and validate path parameters
    */
-  parsePathParameters(event, requiredParams = []) {
+  parsePathParameters(event: any, requiredParams: string[] = []): Record<string, string> {
     const params = event.pathParameters || {};
 
     for (const param of requiredParams) {
@@ -74,10 +100,10 @@ class RequestHandler {
   /**
    * Extract and validate query parameters
    */
-  parseQueryParameters(event, validators = {}) {
+  parseQueryParameters(event: any, validators: Record<string, (val: string) => any> = {}): Record<string, any> {
     const params = event.queryStringParameters || {};
 
-    const validated = {};
+    const validated: Record<string, any> = {};
     for (const [key, validator] of Object.entries(validators)) {
       const value = params[key];
       if (value !== undefined) {
@@ -96,8 +122,8 @@ class RequestHandler {
   /**
    * Validate input data against schema
    */
-  validateInput(data, schema) {
-    const errors = [];
+  validateInput(data: Record<string, any>, schema: ValidationSchema): void {
+    const errors: string[] = [];
 
     for (const [field, rules] of Object.entries(schema)) {
       const value = data[field];
@@ -184,7 +210,7 @@ class RequestHandler {
   /**
    * Log request start
    */
-  logRequestStart(event) {
+  logRequestStart(event: any): void {
     this.logger.info('Request started', {
       method: event.httpMethod,
       path: event.path,
@@ -196,7 +222,7 @@ class RequestHandler {
   /**
    * Log request completion
    */
-  logRequestComplete(statusCode, responseSize = 0) {
+  logRequestComplete(statusCode: number, responseSize: number = 0): void {
     const duration = Date.now() - this.startTime;
     this.logger.info('Request completed', {
       statusCode,
@@ -209,9 +235,15 @@ class RequestHandler {
 
   /**
    * Create standardized response wrapper
+   * 
+   * @param successHandler Function to execute
+   * @param errorHandler Optional custom error handler
    */
-  createResponse(successHandler, errorHandler = null) {
-    return async (event, context) => {
+  createResponse(
+    successHandler: (event: any, context: any) => Promise<ApiSuccessResponse>,
+    errorHandler: ((error: any, context: any) => ApiErrorResponse) | null = null
+  ) {
+    return async (event: any, context: any): Promise<ApiSuccessResponse | ApiErrorResponse> => {
       const requestId = context?.awsRequestId || `test-${Date.now()}`;
       this.logger = new Logger({
         function: this.functionName,
@@ -224,13 +256,13 @@ class RequestHandler {
         const result = await successHandler(event, context);
         this.logRequestComplete(result.statusCode, result.body?.length || 0);
         return result;
-      } catch (error) {
+      } catch (error: any) {
         const errorResponse = errorHandler
           ? errorHandler(error, { requestId, function: this.functionName })
-          : require('./errorHandler').ErrorHandler.createErrorResponse(error, {
-              requestId,
-              function: this.functionName,
-            });
+          : ErrorHandler.createErrorResponse(error, {
+            requestId,
+            function: this.functionName,
+          });
 
         this.logRequestComplete(errorResponse.statusCode);
         return errorResponse;
@@ -240,7 +272,7 @@ class RequestHandler {
 }
 
 // Common validation schemas
-const ValidationSchemas = {
+export const ValidationSchemas: Record<string, ValidationSchema> = {
   user: {
     userId: { type: 'string', required: true, minLength: 1, maxLength: 100 },
     email: {
@@ -277,7 +309,7 @@ const ValidationSchemas = {
     status: {
       type: 'string',
       required: true,
-      validate: value => {
+      validate: (value: any) => {
         const validStatuses = [
           'APPLIED',
           'INTERVIEWING',
@@ -309,9 +341,4 @@ const ValidationSchemas = {
       max: 15 * 1024 * 1024,
     },
   },
-};
-
-module.exports = {
-  RequestHandler,
-  ValidationSchemas,
 };

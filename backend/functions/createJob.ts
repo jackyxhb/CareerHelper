@@ -1,22 +1,23 @@
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
-const { v4: uuidv4 } = require('uuid');
-const { ErrorHandler } = require('../utils/errorHandler');
-const {
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { v4 as uuidv4 } from 'uuid';
+import { ErrorHandler } from '../utils/errorHandler';
+import {
   RequestHandler,
   ValidationSchemas,
-} = require('../utils/requestHandler');
+} from '../utils/requestHandler';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION });
 const documentClient = DynamoDBDocumentClient.from(dynamoClient);
 const requestHandler = new RequestHandler('createJob');
 
-exports.handler = requestHandler.createResponse(async event => {
+export const handler = requestHandler.createResponse(async (event: APIGatewayProxyEvent) => {
   const payload = requestHandler.parseBody(event, ['title', 'company']);
   const jobId = uuidv4();
   const postedAt = new Date().toISOString();
 
-  const jobRecord = {
+  const jobRecord: Record<string, any> = {
     jobId,
     title: payload.title,
     company: payload.company,
@@ -50,7 +51,7 @@ exports.handler = requestHandler.createResponse(async event => {
         location: payload.location,
         hasSalary: payload.salary !== undefined,
       },
-      error
+      error as Error
     );
     throw error;
   }

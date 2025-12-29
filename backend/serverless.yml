@@ -2,6 +2,10 @@ service: careerhelper-backend
 
 frameworkVersion: '3'
 
+plugins:
+  - serverless-plugin-typescript
+
+
 provider:
   name: aws
   runtime: nodejs18.x
@@ -47,8 +51,18 @@ provider:
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - dynamodb:*
-      Resource: "*"
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:Query
+        - dynamodb:Scan
+      Resource:
+        - !GetAtt UsersTable.Arn
+        - !GetAtt JobsTable.Arn
+        - !GetAtt ExperiencesTable.Arn
+        - !GetAtt ApplicationsTable.Arn
+        - !GetAtt ResumesTable.Arn
     - Effect: Allow
       Action:
         - s3:PutObject

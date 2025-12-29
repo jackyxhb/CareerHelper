@@ -1,15 +1,16 @@
-const DynamoDBUtil = require('../utils/dynamodb');
-const { ErrorHandler } = require('../utils/errorHandler');
-const { RequestHandler } = require('../utils/requestHandler');
+import DynamoDBUtil from '../utils/dynamodb';
+import { ErrorHandler } from '../utils/errorHandler';
+import { RequestHandler } from '../utils/requestHandler';
 
-const dynamodb = new DynamoDBUtil(process.env.USERS_TABLE);
+const usersTable = process.env.USERS_TABLE || 'Users';
+const dynamodb = new DynamoDBUtil(usersTable);
 const requestHandler = new RequestHandler('health');
 
-exports.handler = requestHandler.createResponse(async () => {
+export const handler = requestHandler.createResponse(async () => {
   // Check DynamoDB connectivity by attempting to scan users table
   try {
     await dynamodb.scanItems({ Limit: 1 });
-  } catch (error) {
+  } catch (error: any) {
     throw new Error(`Database health check failed: ${error.message}`);
   }
 

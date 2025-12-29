@@ -1,20 +1,21 @@
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
-const { v4: uuidv4 } = require('uuid');
-const {
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { v4 as uuidv4 } from 'uuid';
+import {
   ErrorHandler,
   UnauthorizedError,
-} = require('../utils/errorHandler');
-const {
+} from '../utils/errorHandler';
+import {
   RequestHandler,
   ValidationSchemas,
-} = require('../utils/requestHandler');
+} from '../utils/requestHandler';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION });
 const documentClient = DynamoDBDocumentClient.from(dynamoClient);
 const requestHandler = new RequestHandler('createApplication');
 
-function extractUserId(event) {
+function extractUserId(event: APIGatewayProxyEvent | any): string | null {
   const jwtClaims =
     event?.requestContext?.authorizer?.jwt?.claims ||
     event?.requestContext?.authorizer?.claims ||
@@ -29,7 +30,7 @@ function extractUserId(event) {
   );
 }
 
-exports.handler = requestHandler.createResponse(async event => {
+export const handler = requestHandler.createResponse(async (event: APIGatewayProxyEvent) => {
   const userId = extractUserId(event);
 
   if (!userId) {
@@ -44,7 +45,7 @@ exports.handler = requestHandler.createResponse(async event => {
       ? payload.status.toUpperCase()
       : payload.status;
 
-  const applicationRecord = {
+  const applicationRecord: Record<string, any> = {
     userId,
     applicationId,
     jobId: payload.jobId,
@@ -84,7 +85,7 @@ exports.handler = requestHandler.createResponse(async event => {
         jobId: payload.jobId,
         status: normalizedStatus,
       },
-      error
+      error as Error
     );
     throw error;
   }

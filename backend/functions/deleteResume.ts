@@ -1,23 +1,24 @@
-const { S3Client, DeleteObjectCommand } = require('@aws-sdk/client-s3');
-const DynamoDBUtil = require('../utils/dynamodb');
-const { RequestHandler } = require('../utils/requestHandler');
-const {
+import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import DynamoDBUtil from '../utils/dynamodb';
+import { RequestHandler } from '../utils/requestHandler';
+import {
   ErrorHandler,
   UnauthorizedError,
   NotFoundError,
-} = require('../utils/errorHandler');
-const Logger = require('../utils/logger');
+} from '../utils/errorHandler';
+import Logger from '../utils/logger';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 
 const uploadsBucket = process.env.UPLOADS_BUCKET;
 const region = process.env.AWS_REGION;
 
 const s3Client = new S3Client({ region });
-const resumesTable = new DynamoDBUtil(process.env.RESUMES_TABLE);
-const usersTable = new DynamoDBUtil(process.env.USERS_TABLE);
+const resumesTable = new DynamoDBUtil(process.env.RESUMES_TABLE || 'Resumes');
+const usersTable = new DynamoDBUtil(process.env.USERS_TABLE || 'Users');
 
 const requestHandler = new RequestHandler('deleteResume');
 
-function extractUserId(event) {
+function extractUserId(event: APIGatewayProxyEvent | any): string | null {
   const jwtClaims =
     event?.requestContext?.authorizer?.jwt?.claims ||
     event?.requestContext?.authorizer?.claims ||
@@ -32,7 +33,7 @@ function extractUserId(event) {
   );
 }
 
-exports.handler = requestHandler.createResponse(async event => {
+export const handler = requestHandler.createResponse(async (event: APIGatewayProxyEvent) => {
   const userId = extractUserId(event);
 
   if (!userId) {
@@ -65,7 +66,7 @@ exports.handler = requestHandler.createResponse(async event => {
       ExpressionAttributeValues: {
         ':updatedAt': new Date().toISOString(),
       },
-    });
+    } as any);
   }
 
   logger.info('Deleted resume and metadata', {

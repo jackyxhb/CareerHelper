@@ -1,12 +1,13 @@
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
-const { v4: uuidv4 } = require('uuid');
-const Logger = require('../utils/logger');
-const { ErrorHandler } = require('../utils/errorHandler');
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { v4 as uuidv4 } from 'uuid';
+import Logger from '../utils/logger';
+import { ErrorHandler } from '../utils/errorHandler';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 
-exports.handler = async event => {
-  const { userId, title, company, startDate, endDate, description } =
-    JSON.parse(event.body);
+export const handler = async (event: APIGatewayProxyEvent) => {
+  const body = event.body ? JSON.parse(event.body) : {};
+  const { userId, title, company, startDate, endDate, description } = body;
 
   const logger = new Logger({
     component: 'createExperience',
@@ -45,7 +46,7 @@ exports.handler = async event => {
       },
       201
     );
-  } catch (error) {
+  } catch (error: any) {
     logger.error(
       'Failed to create experience',
       { company, title, hasEndDate: Boolean(endDate) },

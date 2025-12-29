@@ -1,12 +1,45 @@
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient } = require('@aws-sdk/lib-dynamodb');
-const Logger = require('./logger');
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+  ScanCommand,
+  UpdateCommand,
+  DeleteCommand,
+  TranslateConfig,
+  UpdateCommandInput,
+} from '@aws-sdk/lib-dynamodb';
+import Logger from './logger';
+
+export interface DynamoDBUtilOptions {
+  client?: DynamoDBClient;
+  maxAttempts?: number;
+  requestTimeout?: number;
+  clientConfig?: any;
+  failureThreshold?: number;
+  recoveryTimeout?: number;
+}
+
+export interface CircuitBreakerState {
+  failures: number;
+  lastFailureTime: number | null;
+  state: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+  failureThreshold: number;
+  recoveryTimeout: number;
+}
 
 /**
  * DynamoDB utility with retry logic and circuit breaker patterns
  */
-class DynamoDBUtil {
-  constructor(tableName, options = {}) {
+export default class DynamoDBUtil {
+  private tableName: string;
+  private logger: Logger;
+  private client: DynamoDBClient;
+  private dynamodb: DynamoDBDocumentClient;
+  private circuitBreaker: CircuitBreakerState;
+
+  constructor(tableName: string, options: DynamoDBUtilOptions = {}) {
     this.tableName = tableName;
     this.logger = new Logger({ component: 'DynamoDBUtil', table: tableName });
 
@@ -24,11 +57,13 @@ class DynamoDBUtil {
       });
     }
 
-    this.dynamodb = DynamoDBDocumentClient.from(this.client, {
+    const translateConfig: TranslateConfig = {
       marshallOptions: {
         removeUndefinedValues: true,
       },
-    });
+    };
+
+    this.dynamodb = DynamoDBDocumentClient.from(this.client, translateConfig);
 
     // Circuit breaker state
     this.circuitBreaker = {
@@ -43,13 +78,13 @@ class DynamoDBUtil {
   /**
    * Check circuit breaker state
    */
-  _checkCircuitBreaker() {
+  private _checkCircuitBreaker(): void {
     const now = Date.now();
 
     if (this.circuitBreaker.state === 'OPEN') {
       if (
-        now - this.circuitBreaker.lastFailureTime >
-        this.circuitBreaker.recoveryTimeout
+        this.circuitBreaker.lastFailureTime &&
+        now - this.circuitBreaker.lastFailureTime > this.circuitBreaker.recoveryTimeout
       ) {
         this.circuitBreaker.state = 'HALF_OPEN';
         this.logger.info('Circuit breaker moving to HALF_OPEN state');
@@ -64,7 +99,7 @@ class DynamoDBUtil {
   /**
    * Record circuit breaker failure
    */
-  _recordFailure() {
+  private _recordFailure(): void {
     this.circuitBreaker.failures++;
     this.circuitBreaker.lastFailureTime = Date.now();
 
@@ -79,7 +114,7 @@ class DynamoDBUtil {
   /**
    * Record circuit breaker success
    */
-  _recordSuccess() {
+  private _recordSuccess(): void {
     if (this.circuitBreaker.state === 'HALF_OPEN') {
       this.circuitBreaker.state = 'CLOSED';
       this.circuitBreaker.failures = 0;
@@ -90,7 +125,7 @@ class DynamoDBUtil {
   /**
    * Execute DynamoDB operation with circuit breaker and retry logic
    */
-  async executeCommand(command, operationName = 'unknown') {
+  async executeCommand(command: any, operationName: string = 'unknown'): Promise<any> {
     this._checkCircuitBreaker();
 
     try {
@@ -105,7 +140,7 @@ class DynamoDBUtil {
       this.logger.debug(`${operationName} completed successfully`);
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       this._recordFailure();
 
       this.logger.error(
@@ -121,7 +156,7 @@ class DynamoDBUtil {
       );
 
       // Re-throw with additional context
-      const enhancedError = new Error(
+      const enhancedError: any = new Error(
         `${operationName} failed: ${error.message}`
       );
       enhancedError.name = error.name || 'DynamoDBError';
@@ -134,8 +169,7 @@ class DynamoDBUtil {
   /**
    * Get item with circuit breaker protection
    */
-  async getItem(key) {
-    const { GetCommand } = require('@aws-sdk/lib-dynamodb');
+  async getItem(key: Record<string, any>): Promise<Record<string, any> | undefined> {
     const command = new GetCommand({
       TableName: this.tableName,
       Key: key,
@@ -148,8 +182,7 @@ class DynamoDBUtil {
   /**
    * Put item with circuit breaker protection
    */
-  async putItem(item) {
-    const { PutCommand } = require('@aws-sdk/lib-dynamodb');
+  async putItem(item: Record<string, any>): Promise<any> {
     const command = new PutCommand({
       TableName: this.tableName,
       Item: item,
@@ -161,8 +194,7 @@ class DynamoDBUtil {
   /**
    * Query items with circuit breaker protection
    */
-  async queryItems(params) {
-    const { QueryCommand } = require('@aws-sdk/lib-dynamodb');
+  async queryItems(params: Record<string, any>): Promise<Record<string, any>[]> {
     const command = new QueryCommand({
       TableName: this.tableName,
       ...params,
@@ -175,8 +207,7 @@ class DynamoDBUtil {
   /**
    * Scan items with circuit breaker protection
    */
-  async scanItems(params = {}) {
-    const { ScanCommand } = require('@aws-sdk/lib-dynamodb');
+  async scanItems(params: Record<string, any> = {}): Promise<Record<string, any>[]> {
     const command = new ScanCommand({
       TableName: this.tableName,
       ...params,
@@ -189,12 +220,11 @@ class DynamoDBUtil {
   /**
    * Update item with circuit breaker protection
    */
-  async updateItem(params) {
-    const { UpdateCommand } = require('@aws-sdk/lib-dynamodb');
+  async updateItem(params: Record<string, any>): Promise<any> {
     const command = new UpdateCommand({
       TableName: this.tableName,
       ...params,
-    });
+    } as UpdateCommandInput);
 
     return await this.executeCommand(command, 'updateItem');
   }
@@ -202,8 +232,7 @@ class DynamoDBUtil {
   /**
    * Delete item with circuit breaker protection
    */
-  async deleteItem(key) {
-    const { DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+  async deleteItem(key: Record<string, any>): Promise<any> {
     const command = new DeleteCommand({
       TableName: this.tableName,
       Key: key,
@@ -215,7 +244,7 @@ class DynamoDBUtil {
   /**
    * Get circuit breaker status
    */
-  getCircuitBreakerStatus() {
+  getCircuitBreakerStatus(): CircuitBreakerState {
     return {
       state: this.circuitBreaker.state,
       failures: this.circuitBreaker.failures,
@@ -225,5 +254,3 @@ class DynamoDBUtil {
     };
   }
 }
-
-module.exports = DynamoDBUtil;

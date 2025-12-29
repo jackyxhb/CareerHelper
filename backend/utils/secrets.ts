@@ -1,14 +1,19 @@
-const {
+import {
   SSMClient,
   GetParameterCommand,
-} = require('@aws-sdk/client-ssm');
-const {
+} from '@aws-sdk/client-ssm';
+import {
   SecretsManagerClient,
   GetSecretValueCommand,
-} = require('@aws-sdk/client-secrets-manager');
-const Logger = require('./logger');
+} from '@aws-sdk/client-secrets-manager';
+import Logger from './logger';
 
-class SecretsManager {
+export class SecretsManager {
+  private ssm: SSMClient;
+  private secretsManager: SecretsManagerClient;
+  private cache: Map<string, any>;
+  private logger: Logger;
+
   constructor() {
     const region = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'us-east-1';
     this.ssm = new SSMClient({ region });
@@ -22,7 +27,7 @@ class SecretsManager {
    * @param {string} name - Parameter name (without leading slash for hierarchical parameters)
    * @returns {Promise<string>} Parameter value
    */
-  async getSSMParameter(name) {
+  async getSSMParameter(name: string): Promise<string> {
     const cacheKey = `ssm:${name}`;
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey);
@@ -36,10 +41,10 @@ class SecretsManager {
         })
       );
 
-      const value = response.Parameter.Value;
+      const value = response.Parameter?.Value || '';
       this.cache.set(cacheKey, value);
       return value;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to retrieve SSM parameter', { name }, error);
       throw error;
     }
@@ -48,9 +53,9 @@ class SecretsManager {
   /**
    * Get Secrets Manager secret value
    * @param {string} secretId - Secret ID or ARN
-   * @returns {Promise<object>} Parsed secret value
+   * @returns {Promise<any>} Parsed secret value
    */
-  async getSecretValue(secretId) {
+  async getSecretValue(secretId: string): Promise<any> {
     const cacheKey = `secret:${secretId}`;
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey);
@@ -64,10 +69,14 @@ class SecretsManager {
       );
 
       const secretString = response.SecretString;
+      if (!secretString) {
+        throw new Error('SecretString is missing');
+      }
+
       const value = JSON.parse(secretString);
       this.cache.set(cacheKey, value);
       return value;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to retrieve secret', { secretId }, error);
       throw error;
     }
@@ -78,7 +87,7 @@ class SecretsManager {
    * @param {string} stage - Deployment stage (dev, prod, etc.)
    * @returns {Promise<string>} JWT secret
    */
-  async getJWTSecret(stage = process.env.STAGE || 'dev') {
+  async getJWTSecret(stage: string = process.env.STAGE || 'dev'): Promise<string> {
     const paramName = `/careerhelper/${stage}/jwt-secret`;
     return this.getSSMParameter(paramName);
   }
@@ -88,7 +97,7 @@ class SecretsManager {
    * @param {string} stage - Deployment stage (dev, prod, etc.)
    * @returns {Promise<string>} API key
    */
-  async getAPIKey(stage = process.env.STAGE || 'dev') {
+  async getAPIKey(stage: string = process.env.STAGE || 'dev'): Promise<string> {
     const paramName = `/careerhelper/${stage}/api-key`;
     return this.getSSMParameter(paramName);
   }
@@ -98,7 +107,7 @@ class SecretsManager {
    * @param {string} stage
    * @returns {Promise<string>}
    */
-  async getJobSearchApiKey(stage = process.env.STAGE || 'dev') {
+  async getJobSearchApiKey(stage: string = process.env.STAGE || 'dev'): Promise<string> {
     const paramName = `/careerhelper/${stage}/job-search-api-key`;
     return this.getSSMParameter(paramName);
   }
@@ -106,9 +115,9 @@ class SecretsManager {
   /**
    * Get database credentials for the current stage
    * @param {string} stage - Deployment stage (dev, prod, etc.)
-   * @returns {Promise<object>} Database credentials
+   * @returns {Promise<any>} Database credentials
    */
-  async getDatabaseCredentials(stage = process.env.STAGE || 'dev') {
+  async getDatabaseCredentials(stage: string = process.env.STAGE || 'dev'): Promise<any> {
     const secretId = `careerhelper/${stage}/database`;
     return this.getSecretValue(secretId);
   }
@@ -116,15 +125,10 @@ class SecretsManager {
   /**
    * Clear cache (useful for testing or when secrets are rotated)
    */
-  clearCache() {
+  clearCache(): void {
     this.cache.clear();
   }
 }
 
 // Export singleton instance
-const secretsManager = new SecretsManager();
-
-module.exports = {
-  SecretsManager,
-  secretsManager,
-};
+export const secretsManager = new SecretsManager();

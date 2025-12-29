@@ -1,25 +1,26 @@
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
-const { v4: uuidv4 } = require('uuid');
-const path = require('path');
-const DynamoDBUtil = require('../utils/dynamodb');
-const {
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
+import DynamoDBUtil from '../utils/dynamodb';
+import {
   RequestHandler,
   ValidationSchemas,
-} = require('../utils/requestHandler');
-const {
+} from '../utils/requestHandler';
+import {
   ErrorHandler,
   UnauthorizedError,
   ValidationError,
-} = require('../utils/errorHandler');
-const Logger = require('../utils/logger');
+} from '../utils/errorHandler';
+import Logger from '../utils/logger';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 
 const uploadsBucket = process.env.UPLOADS_BUCKET;
 const region = process.env.AWS_REGION;
 
 const s3Client = new S3Client({ region });
-const resumesTable = new DynamoDBUtil(process.env.RESUMES_TABLE);
-const usersTable = new DynamoDBUtil(process.env.USERS_TABLE);
+const resumesTable = new DynamoDBUtil(process.env.RESUMES_TABLE || 'Resumes');
+const usersTable = new DynamoDBUtil(process.env.USERS_TABLE || 'Users');
 
 const requestHandler = new RequestHandler('issueResumeUpload');
 
@@ -30,7 +31,7 @@ const ALLOWED_CONTENT_TYPES = [
 ];
 const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB limit for resumes
 
-function extractUserId(event) {
+function extractUserId(event: APIGatewayProxyEvent | any): string | null {
   const jwtClaims =
     event?.requestContext?.authorizer?.jwt?.claims ||
     event?.requestContext?.authorizer?.claims ||
@@ -45,7 +46,7 @@ function extractUserId(event) {
   );
 }
 
-function sanitizeFileName(fileName) {
+function sanitizeFileName(fileName: string): string {
   const baseName = path.basename(fileName || '').trim();
   if (!baseName) {
     throw new ValidationError('File name could not be determined');
@@ -54,7 +55,7 @@ function sanitizeFileName(fileName) {
   return baseName.replace(/[^a-zA-Z0-9._-]/g, '_');
 }
 
-exports.handler = requestHandler.createResponse(async event => {
+export const handler = requestHandler.createResponse(async (event: APIGatewayProxyEvent) => {
   const userId = extractUserId(event);
 
   if (!userId) {
@@ -124,7 +125,7 @@ exports.handler = requestHandler.createResponse(async event => {
       ':resumeKey': objectKey,
       ':updatedAt': timestamp,
     },
-  });
+  } as any);
 
   logger.info('Issued pre-signed resume upload URL', {
     objectKey,

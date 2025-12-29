@@ -1,14 +1,16 @@
-const DynamoDBUtil = require('../utils/dynamodb');
-const { ErrorHandler, NotFoundError } = require('../utils/errorHandler');
-const {
+import DynamoDBUtil from '../utils/dynamodb';
+import { ErrorHandler, NotFoundError } from '../utils/errorHandler';
+import {
   RequestHandler,
   ValidationSchemas,
-} = require('../utils/requestHandler');
+} from '../utils/requestHandler';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
-const dynamodb = new DynamoDBUtil(process.env.USERS_TABLE);
+const usersTable = process.env.USERS_TABLE || 'Users';
+const dynamodb = new DynamoDBUtil(usersTable);
 const requestHandler = new RequestHandler('getUser');
 
-exports.handler = requestHandler.createResponse(async event => {
+export const handler = requestHandler.createResponse(async (event: APIGatewayProxyEvent) => {
   // Parse and validate path parameters
   const { userId } = requestHandler.parsePathParameters(event, ['userId']);
 

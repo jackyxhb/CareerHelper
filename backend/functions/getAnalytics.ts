@@ -1,14 +1,43 @@
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, ScanCommand } = require('@aws-sdk/lib-dynamodb');
-const { ErrorHandler } = require('../utils/errorHandler');
-const Logger = require('../utils/logger');
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { ErrorHandler } from '../utils/errorHandler';
+import Logger from '../utils/logger';
 
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION });
 const documentClient = DynamoDBDocumentClient.from(dynamoClient);
 
-async function scanTable(tableName) {
-  const items = [];
-  let ExclusiveStartKey;
+interface Application {
+  status: string;
+  [key: string]: any;
+}
+
+interface Experience {
+  userId: string;
+  startDate?: string;
+  endDate?: string;
+  [key: string]: any;
+}
+
+interface AnalyticsResponse {
+  summary: {
+    totalUsers: number;
+    totalApplications: number;
+    totalExperiences: number;
+    applicationsByStatus: Record<string, number>;
+    interviewRate: number;
+    offerRate: number;
+    averageApplicationsPerUser: number;
+    averageExperiencesPerUser: number;
+  };
+  experienceGaps: {
+    usersWithGaps: number;
+    averageGapMonths: number;
+  };
+}
+
+async function scanTable(tableName: string): Promise<any[]> {
+  const items: any[] = [];
+  let ExclusiveStartKey: Record<string, any> | undefined;
 
   do {
     const command = new ScanCommand({
@@ -26,15 +55,15 @@ async function scanTable(tableName) {
   return items;
 }
 
-function countApplicationsByStatus(applications) {
+function countApplicationsByStatus(applications: Application[]): Record<string, number> {
   return applications.reduce((acc, app) => {
     const key = (app.status || 'unknown').toLowerCase();
     acc[key] = (acc[key] || 0) + 1;
     return acc;
-  }, {});
+  }, {} as Record<string, number>);
 }
 
-function calculateRates(applicationsByStatus, totalApplications) {
+function calculateRates(applicationsByStatus: Record<string, number>, totalApplications: number) {
   if (!totalApplications) {
     return {
       interviewRate: 0,
@@ -55,7 +84,7 @@ function calculateRates(applicationsByStatus, totalApplications) {
   };
 }
 
-function calculateExperienceInsights(experiences) {
+function calculateExperienceInsights(experiences: Experience[]) {
   const byUser = experiences.reduce((acc, exp) => {
     if (!exp.userId) {
       return acc;
@@ -63,16 +92,16 @@ function calculateExperienceInsights(experiences) {
     acc[exp.userId] = acc[exp.userId] || [];
     acc[exp.userId].push(exp);
     return acc;
-  }, {});
+  }, {} as Record<string, Experience[]>);
 
   const users = Object.keys(byUser).length || 1;
   let usersWithGaps = 0;
-  const gapDurations = [];
+  const gapDurations: number[] = [];
 
   Object.values(byUser).forEach(userExperiences => {
     const sorted = userExperiences
       .filter(exp => exp.startDate)
-      .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+      .sort((a, b) => new Date(a.startDate!).getTime() - new Date(b.startDate!).getTime());
 
     let hasGap = false;
 
@@ -115,14 +144,14 @@ function calculateExperienceInsights(experiences) {
   };
 }
 
-exports.handler = async () => {
+export const handler = async () => {
   const logger = new Logger({ component: 'getAnalytics' });
 
   try {
     const [applications, experiences, users] = await Promise.all([
-      scanTable(process.env.APPLICATIONS_TABLE),
-      scanTable(process.env.EXPERIENCES_TABLE),
-      scanTable(process.env.USERS_TABLE),
+      scanTable(process.env.APPLICATIONS_TABLE || 'Applications'),
+      scanTable(process.env.EXPERIENCES_TABLE || 'Experiences'),
+      scanTable(process.env.USERS_TABLE || 'Users'),
     ]);
 
     const applicationsByStatus = countApplicationsByStatus(applications);
@@ -138,7 +167,7 @@ exports.handler = async () => {
 
     const experienceInsights = calculateExperienceInsights(experiences);
 
-    const response = {
+    const response: AnalyticsResponse = {
       summary: {
         totalUsers: users.length,
         totalApplications,
@@ -163,7 +192,7 @@ exports.handler = async () => {
     });
 
     return ErrorHandler.createSuccessResponse(response);
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to compute analytics', {}, error);
     return ErrorHandler.createErrorResponse(error, {
       component: 'getAnalytics',

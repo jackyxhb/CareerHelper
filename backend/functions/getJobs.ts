@@ -1,12 +1,12 @@
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const {
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import {
   DynamoDBDocumentClient,
   ScanCommand,
-} = require('@aws-sdk/lib-dynamodb');
-const Logger = require('../utils/logger');
-const { ErrorHandler } = require('../utils/errorHandler');
+} from '@aws-sdk/lib-dynamodb';
+import Logger from '../utils/logger';
+import { ErrorHandler } from '../utils/errorHandler';
 
-exports.handler = async () => {
+export const handler = async () => {
   const logger = new Logger({ component: 'getJobs' });
   const client = new DynamoDBClient({ region: process.env.AWS_REGION });
   const dynamodb = DynamoDBDocumentClient.from(client);
@@ -21,7 +21,7 @@ exports.handler = async () => {
       items: result.Items?.length || 0,
     });
     return ErrorHandler.createSuccessResponse(result.Items || []);
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to retrieve jobs', {}, error);
     return ErrorHandler.createErrorResponse(error, {
       component: 'getJobs',
