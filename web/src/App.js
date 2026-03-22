@@ -10,6 +10,10 @@ import ExperienceManager from './components/ExperienceManager';
 import ApplicationTracker from './components/ApplicationTracker';
 import AnalyticsPage from './components/AnalyticsPage';
 import ResumeManager from './components/ResumeManager';
+import ResumeTailor from './components/ResumeTailor';
+import ErrorBoundary from './components/ErrorBoundary';
+import OnboardingFlow from './components/OnboardingFlow';
+import analytics, { AnalyticsEvent } from './utils/analytics';
 import { logError, logInfo } from './utils/logger';
 
 Amplify.configure({
@@ -71,7 +75,10 @@ async function fetchOrCreateUserProfile(user) {
 
       await API.post('CareerHelperAPI', '/users', { body: newProfile });
       logInfo('User profile created', { userId });
-      const createdProfile = await API.get('CareerHelperAPI', `/users/${userId}`);
+      const createdProfile = await API.get(
+        'CareerHelperAPI',
+        `/users/${userId}`
+      );
       return createdProfile;
     }
 
@@ -82,8 +89,27 @@ async function fetchOrCreateUserProfile(user) {
 function App({ user, signOut }) {
   const [profile, setProfile] = useState(null);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
+    if (user) {
+      const hasSeenOnboarding = localStorage.getItem('onboarding_complete');
+      if (!hasSeenOnboarding) {
+        setShowOnboarding(true);
+      }
+      analytics.identify(user.username);
+    }
+  }, [user]);
+
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('onboarding_complete', 'true');
+    setShowOnboarding(false);
+  };
+
+  const handleOnboardingSkip = () => {
+    localStorage.setItem('onboarding_complete', 'true');
+    setShowOnboarding(false);
+  };
     let isMounted = true;
 
     const bootstrapProfile = async () => {
@@ -141,7 +167,7 @@ function App({ user, signOut }) {
             {' | '}
             <Link to="/applications">Applications</Link>
             {' | '}
-            <Link to="/analytics">Analytics</Link>
+            <Link to="/resume-tailor">AI Resume Tailor</Link>
             {' | '}
             <Link to="/resumes">Resumes</Link>
           </nav>
@@ -155,8 +181,15 @@ function App({ user, signOut }) {
             <Route path="/applications" element={<ApplicationTracker user={user} />} />
             <Route path="/analytics" element={<AnalyticsPage user={user} />} />
             <Route path="/resumes" element={<ResumeManager user={user} />} />
+            <Route path="/resume-tailor" element={<ResumeTailor user={user} />} />
           </Routes>
         </main>
+        {showOnboarding && (
+          <OnboardingFlow
+            onComplete={handleOnboardingComplete}
+            onSkip={handleOnboardingSkip}
+          />
+        )}
       </div>
     </Router>
   );
@@ -164,6 +197,8 @@ function App({ user, signOut }) {
 
 export default function AppWrapper() {
   return (
-    <Authenticator>{({ user, signOut }) => <App user={user} signOut={signOut} />}</Authenticator>
+    <Authenticator>
+      {({ user, signOut }) => <App user={user} signOut={signOut} />}
+    </Authenticator>
   );
 }

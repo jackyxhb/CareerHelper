@@ -399,20 +399,23 @@ See [Releases](https://github.com/jackyxhb/CareerHelper/releases) for full chang
 
 ## 🚀 Roadmap
 
+### In Development (v0.1.0)
+- [x] **AI Resume Tailoring** - Personalized resume suggestions based on job descriptions
+- [x] **Analytics & Monitoring** - Event tracking and error boundaries
+- [x] **Onboarding Flow** - Guided first-time user experience
+- [x] **PMF Survey** - Product-market fit measurement
+- [x] **Beta Distribution** - TestFlight and Play Store beta guides
+
 ### Planned Features
-- [ ] AI-powered resume optimization and suggestions
 - [ ] LinkedIn integration for network building
 - [ ] Advanced analytics dashboard with career insights
-- [x] Mobile offline support for critical features *(delivered Dec 9, 2025)*
 - [ ] Multi-language support (i18n)
-- [ ] Advanced job matching algorithms with ML
 - [ ] Interview preparation tools and mock interviews
 - [ ] Salary negotiation assistance
 - [ ] Career transition planning and guidance
 
 ### Future Releases
-- **v0.1.0**: Enhanced user experience and performance optimizations
-- **v0.2.0**: AI features and advanced analytics
+- **v0.2.0**: Social features, advanced AI recommendations
 - **v1.0.0**: Enterprise-ready with advanced security and compliance
 
 ## 🔄 Staying Up to Date
