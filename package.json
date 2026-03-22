@@ -18,12 +18,18 @@
     "lint": "eslint . --ext .js,.ts,.jsx,.tsx",
     "lint:fix": "eslint . --ext .js,.ts,.jsx,.tsx --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "verify": "bash scripts/verify-changes.sh",
+    "pre-commit": "bash scripts/verify-changes.sh",
+    "depcheck": "depcheck",
+    "dep-cruise": "dependency-cruise"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",
     "@typescript-eslint/eslint-plugin": "^8.48.1",
     "@typescript-eslint/parser": "^8.48.1",
+    "depcheck": "^1.4.7",
+    "dependency-cruiser": "^16.4.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-jsx-a11y": "^6.10.0",
@@ -32,7 +38,24 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-native": "^4.1.0",
     "globals": "^15.13.0",
+    "husky": "^9.1.7",
     "prettier": "^3.7.4",
+    "prettier-eslint": "^16.3.0",
+    "lint-staged": "^15.3.0",
     "yarn": "^1.22.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn pre-commit"
+    }
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,yaml,md}": [
+      "prettier --write"
+    ]
   }
 }

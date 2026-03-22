@@ -1,0 +1,60 @@
+{
+  "traversal": {
+    "depth": 20,
+    "includeOnly": {
+      "path": "^src/"
+    }
+  },
+  "rules": [
+    {
+      "name": "no-backend-from-web",
+      "comment": "Web app should not import from backend",
+      "from": {
+        "path": "^web/src"
+      },
+      "to": {
+        "path": "^backend/src"
+      }
+    },
+    {
+      "name": "no-mobile-from-web",
+      "comment": "Web app should not import from mobile",
+      "from": {
+        "path": "^web/src"
+      },
+      "to": {
+        "path": "^mobile/src"
+      }
+    },
+    {
+      "name": "backend-may-use-shared",
+      "comment": "Backend can use shared types",
+      "from": {
+        "path": "^backend/src"
+      },
+      "to": {
+        "path": "^shared/src"
+      }
+    },
+    {
+      "name": "web-may-use-shared",
+      "comment": "Web can use shared types",
+      "from": {
+        "path": "^web/src"
+      },
+      "to": {
+        "path": "^shared/src"
+      }
+    },
+    {
+      "name": "mobile-may-use-shared",
+      "comment": "Mobile can use shared types",
+      "from": {
+        "path": "^mobile/src"
+      },
+      "to": {
+        "path": "^shared/src"
+      }
+    }
+  ]
+}

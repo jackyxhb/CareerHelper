@@ -1,0 +1,56 @@
+name: Repository Cleanup
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'  # Every Monday at 8 AM UTC
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Delete merged branches
+        run: |
+          git fetch --prune
+          for branch in $(git branch --merged main --format '%(refname:short)' | grep -v 'main\|master'); do
+            git push origin --delete "$branch"
+            echo "Deleted branch: $branch"
+          done
+
+      - name: Find stale branches
+        run: |
+          git fetch --prune
+          for branch in $(git branch -r --format='%(refname:short)' | sed 's|origin/||'); do
+            if ! git log --oneline -1 --since='90 days ago' "origin/$branch" 2>/dev/null; then
+              echo "Stale branch (>90 days): $branch"
+            fi
+          done
+
+  dependency-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: yarn install:all
+
+      - name: Run dependency cruiser
+        run: |
+          npx dependency-cruise --config .dependency-cruiser.json --scope \
+            $(find . -name 'src' -type d -not -path './node_modules/*' | sed 's|^\./||' | tr '\n' ' ')
+
+      - name: Check for unused dependencies
+        run: |
+          npx depcheck --json | tee depcheck-results.json
+          if [ -s depcheck-results.json ] && [ "$(cat depcheck-results.json | jq -r '.dependencies | length')" -gt 0 ]; then
+            echo "Unused dependencies found:"
+            cat depcheck-results.json | jq '.dependencies'
+            exit 1
+          fi

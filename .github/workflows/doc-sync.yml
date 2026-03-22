@@ -1,0 +1,59 @@
+name: Documentation Sync Check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'functions/**'
+      - 'docs/**'
+      - 'README.md'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'functions/**'
+      - 'docs/**'
+      - 'README.md'
+
+jobs:
+  doc-sync-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check README freshness
+        run: |
+          README_DATE=$(git log -1 --format='%ci' -- README.md)
+          echo "README.md last modified: $README_DATE"
+          
+          # Check if src files are newer than README
+          NEWER_FILES=$(git log --since="$README_DATE" --format='%s' --name-only --diff-filter=M -- 'src/**' 'functions/**' | head -20)
+          if [ -n "$NEWER_FILES" ]; then
+            echo "Files modified after README.md:"
+            echo "$NEWER_FILES"
+            echo "Consider updating README.md"
+          fi
+
+      - name: Check API docs consistency
+        run: |
+          API_DOC="docs/api.md"
+          if [ -f "$API_DOC" ]; then
+            API_DATE=$(git log -1 --format='%ci' -- "$API_DOC")
+            echo "API docs last modified: $API_DATE"
+            
+            # Check for Lambda changes that might need API doc updates
+            NEWER_LAMBDAS=$(git log --since="$API_DATE" --format='%s' --name-only -- 'backend/functions/**' | grep -E '\.(js|ts)$' | head -10)
+            if [ -n "$NEWER_LAMBDAS" ]; then
+              echo "Lambda functions modified after API docs:"
+              echo "$NEWER_LAMBDAS"
+              echo "Consider updating docs/api.md"
+            fi
+          fi
+
+      - name: Enforce doc updates for breaking changes
+        run: |
+          BREAKING_CHANGES=$(git log --format='%s' --grep="breaking" --since='30 days ago' | wc -l)
+          if [ "$BREAKING_CHANGES" -gt 0 ]; then
+            echo "Found $BREAKING_CHANGES commits with 'breaking' keyword"
+            echo "Ensure CHANGELOG.md and docs are updated"
+          fi
