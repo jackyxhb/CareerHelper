@@ -55,33 +55,84 @@ function ApplicationTracker({ user }) {
     };
   };
 
+  const getStatusBadgeClass = status => {
+    const s = status?.toLowerCase() || '';
+    if (s === 'offer') return 'badge badge-success';
+    if (s === 'interview') return 'badge badge-warning';
+    if (s === 'rejected') return 'badge badge-error';
+    return 'badge badge-neutral';
+  };
+
   if (!userId) {
     return (
-      <div>
-        <h2>Application Tracker</h2>
-        <p>Loading applications…</p>
+      <div className="analytics-page">
+        <div className="section-header">
+          <h2>Application Tracker</h2>
+        </div>
+        <div className="dashboard-card">
+          <div className="empty-state">
+            <div className="empty-state-icon">🔐</div>
+            <h3>Sign in to track applications</h3>
+            <p>Monitor your job applications and their statuses.</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <h2>Application Tracker</h2>
-      <ul>
-        {applications.map(app => {
-          const details = getJobDetails(app);
-          return (
-            <li key={app.applicationId}>
-              <h3>{details.title}</h3>
-              {details.company && <p>{details.company}</p>}
-              {details.location && <p>{details.location}</p>}
-              <p>Status: {app.status}</p>
-              <p>Applied: {new Date(app.appliedAt).toLocaleDateString()}</p>
-              {app.notes && <p>Notes: {app.notes}</p>}
-            </li>
-          );
-        })}
-      </ul>
+    <div className="analytics-page">
+      <div className="section-header">
+        <h2>Application Tracker</h2>
+        <p className="section-subtitle">
+          Track all your job applications in one place
+        </p>
+      </div>
+
+      {applications.length > 0 ? (
+        <div className="applications-grid">
+          {applications.map(app => {
+            const details = getJobDetails(app);
+            return (
+              <div
+                key={app.applicationId}
+                className="dashboard-card application-card"
+              >
+                <div className="application-header">
+                  <h4>{details.title}</h4>
+                  <span className={getStatusBadgeClass(app.status)}>
+                    {app.status}
+                  </span>
+                </div>
+                {details.company && (
+                  <p className="application-company">{details.company}</p>
+                )}
+                {details.location && (
+                  <p className="application-location">📍 {details.location}</p>
+                )}
+                <div className="application-meta">
+                  <span>
+                    Applied: {new Date(app.appliedAt).toLocaleDateString()}
+                  </span>
+                  {app.notes && (
+                    <p className="application-notes">📝 {app.notes}</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="dashboard-card">
+          <div className="empty-state">
+            <div className="empty-state-icon">📋</div>
+            <h3>No applications yet</h3>
+            <p>
+              Start tracking your job applications to monitor your progress.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

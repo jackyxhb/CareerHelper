@@ -8,8 +8,7 @@ function Dashboard({ user, profile }) {
   const [experiences, setExperiences] = useState([]);
   const [applications, setApplications] = useState([]);
   const [analytics, setAnalytics] = useState(null);
-  const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(false);
-  const [analyticsError, setAnalyticsError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!user?.username) {
@@ -17,24 +16,22 @@ function Dashboard({ user, profile }) {
       setExperiences([]);
       setApplications([]);
       setAnalytics(null);
+      setIsLoading(false);
       return;
     }
 
     const fetchUserData = async userId => {
       try {
-        const jobsData = await API.get('CareerHelperAPI', '/jobs');
+        const [jobsData, experiencesData, applicationsData] = await Promise.all(
+          [
+            API.get('CareerHelperAPI', '/jobs'),
+            API.get('CareerHelperAPI', `/experiences/${userId}`),
+            API.get('CareerHelperAPI', `/applications/${userId}`),
+          ]
+        );
+
         setJobs(jobsData || []);
-
-        const experiencesData = await API.get(
-          'CareerHelperAPI',
-          `/experiences/${userId}`
-        );
         setExperiences(experiencesData || []);
-
-        const applicationsData = await API.get(
-          'CareerHelperAPI',
-          `/applications/${userId}`
-        );
         setApplications(applicationsData || []);
 
         logInfo('Dashboard data refreshed', {
@@ -44,85 +41,215 @@ function Dashboard({ user, profile }) {
           applications: applicationsData?.length || 0,
         });
       } catch (error) {
-        logError('Failed to fetch dashboard data', error, {
-          userId,
-        });
+        logError('Failed to fetch dashboard data', error, { userId });
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchUserData(user.username);
-
-    const loadAnalytics = async () => {
-      setIsAnalyticsLoading(true);
-      setAnalyticsError(null);
-
-      try {
-        const analyticsData = await API.get('CareerHelperAPI', '/analytics');
-        setAnalytics(analyticsData || null);
-        const totals = analyticsData?.summary || {};
-        logInfo('Analytics data loaded for dashboard', {
-          totalApplications: totals.totalApplications || 0,
-          interviewRate: totals.interviewRate || 0,
-          offerRate: totals.offerRate || 0,
-        });
-      } catch (error) {
-        setAnalyticsError('Unable to load analytics right now.');
-        logError('Failed to fetch analytics data', error);
-      } finally {
-        setIsAnalyticsLoading(false);
-      }
-    };
-
-    loadAnalytics();
   }, [user?.username]);
 
+  const loadAnalytics = async () => {
+    try {
+      const analyticsData = await API.get('CareerHelperAPI', '/analytics');
+      setAnalytics(analyticsData || null);
+    } catch (error) {
+      logError('Failed to fetch analytics data', error);
+    }
+  };
+
+  useEffect(() => {
+    loadAnalytics();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="page-container">
+        <div className="text-center p-6">
+          <div className="loading-spinner" style={{ margin: '0 auto' }}></div>
+          <p className="mt-4 text-muted">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const stats = [
+    {
+      label: 'Active Jobs',
+      value: jobs.length,
+      icon: '💼',
+      color: '#6366f1',
+      bgColor: '#eef2ff',
+    },
+    {
+      label: 'Experiences',
+      value: experiences.length,
+      icon: '📋',
+      color: '#8b5cf6',
+      bgColor: '#f3e8ff',
+    },
+    {
+      label: 'Applications',
+      value: applications.length,
+      icon: '📤',
+      color: '#10b981',
+      bgColor: '#d1fae5',
+    },
+    {
+      label: 'Interview Rate',
+      value: analytics?.summary?.interviewRate
+        ? `${Math.round(analytics.summary.interviewRate)}%`
+        : '—',
+      icon: '🎯',
+      color: '#f59e0b',
+      bgColor: '#fef3c7',
+    },
+  ];
+
   return (
-    <div>
-      <h2>Dashboard</h2>
-      {(profile?.name || user?.attributes?.email) && (
-        <p>Welcome, {profile?.name || user?.attributes?.email}!</p>
-      )}
-
-      <div>
-        <h3>Recent Jobs</h3>
-        <ul>
-          {jobs.slice(0, 5).map(job => (
-            <li key={job.jobId}>
-              {job.title} at {job.company}
-            </li>
-          ))}
-        </ul>
+    <div className="page-container">
+      <div className="page-header">
+        <h1 className="page-title">
+          Welcome back{profile?.name ? `, ${profile.name.split(' ')[0]}` : ''}!
+          👋
+        </h1>
+        <p className="page-subtitle">
+          Here's what's happening with your career journey
+        </p>
       </div>
 
-      <div>
-        <h3>Your Experiences</h3>
-        <ul>
-          {experiences.map(exp => (
-            <li key={exp.experienceId}>
-              {exp.title} at {exp.company}
-            </li>
-          ))}
-        </ul>
+      <div className="stats-grid">
+        {stats.map((stat, index) => (
+          <div key={index} className="stat-card">
+            <div
+              className="stat-card-icon"
+              style={{ backgroundColor: stat.bgColor }}
+            >
+              {stat.icon}
+            </div>
+            <div className="stat-card-value">{stat.value}</div>
+            <div className="stat-card-label">{stat.label}</div>
+          </div>
+        ))}
       </div>
 
-      <div>
-        <h3>Application Status</h3>
-        <ul>
-          {applications.map(app => (
-            <li key={app.applicationId}>
-              Application for Job {app.jobId}: {app.status}
-            </li>
-          ))}
-        </ul>
+      <div className="grid-2">
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">📋 Recent Experiences</h3>
+          </div>
+          {experiences.length > 0 ? (
+            <ul className="list">
+              {experiences.slice(0, 3).map(exp => (
+                <li key={exp.experienceId} className="list-item">
+                  <div className="list-item-content">
+                    <div className="list-item-title">{exp.title}</div>
+                    <div className="list-item-subtitle">{exp.company}</div>
+                  </div>
+                  {exp.startDate && (
+                    <span className="badge badge-primary">
+                      {new Date(exp.startDate).getFullYear()}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-state-icon">📝</div>
+              <div className="empty-state-title">No experiences yet</div>
+              <p className="empty-state-text">
+                Add your work history to showcase your career
+              </p>
+              <a href="/experiences" className="btn btn-primary">
+                Add Experience
+              </a>
+            </div>
+          )}
+        </div>
+
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">📤 Recent Applications</h3>
+          </div>
+          {applications.length > 0 ? (
+            <ul className="list">
+              {applications.slice(0, 3).map(app => (
+                <li key={app.applicationId} className="list-item">
+                  <div className="list-item-content">
+                    <div className="list-item-title">
+                      Application #{app.applicationId.slice(0, 8)}
+                    </div>
+                    <div className="list-item-subtitle">
+                      {new Date(
+                        app.createdAt || Date.now()
+                      ).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <span className={`badge badge-${getStatusColor(app.status)}`}>
+                    {app.status || 'Applied'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-state-icon">🚀</div>
+              <div className="empty-state-title">No applications yet</div>
+              <p className="empty-state-text">
+                Start tracking your job applications
+              </p>
+              <a href="/applications" className="btn btn-primary">
+                Track Applications
+              </a>
+            </div>
+          )}
+        </div>
       </div>
 
-      <DashboardInsights
-        analytics={analytics}
-        isLoading={isAnalyticsLoading}
-        error={analyticsError}
-      />
+      <div className="mt-8">
+        <DashboardInsights
+          analytics={analytics}
+          isLoading={false}
+          error={null}
+        />
+      </div>
+
+      <div className="mt-8">
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">💡 Quick Actions</h3>
+          </div>
+          <div className="flex gap-4" style={{ flexWrap: 'wrap' }}>
+            <a href="/jobs" className="btn btn-primary">
+              🔍 Find Jobs
+            </a>
+            <a href="/experiences" className="btn btn-secondary">
+              ➕ Add Experience
+            </a>
+            <a href="/resume-tailor" className="btn btn-secondary">
+              ✨ AI Resume Tailor
+            </a>
+            <a href="/resumes" className="btn btn-secondary">
+              📄 Manage Resumes
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   );
+}
+
+function getStatusColor(status) {
+  const statusColors = {
+    APPLIED: 'primary',
+    INTERVIEWING: 'warning',
+    OFFERED: 'success',
+    REJECTED: 'error',
+    WITHDRAWN: 'secondary',
+  };
+  return statusColors[status] || 'primary';
 }
 
 export default Dashboard;

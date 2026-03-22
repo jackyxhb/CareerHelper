@@ -118,48 +118,104 @@ function ResumeManager({ user }) {
   }
 
   return (
-    <div>
-      <h2>Resume Library</h2>
-      <p>Upload and manage resumes used across your applications.</p>
+    <div className="analytics-page">
+      {!user?.username ? (
+        <>
+          <div className="section-header">
+            <h2>Resume Library</h2>
+          </div>
+          <div className="dashboard-card">
+            <div className="empty-state">
+              <div className="empty-state-icon">🔐</div>
+              <h3>Sign in to manage resumes</h3>
+              <p>Upload and manage your resumes for job applications.</p>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="section-header">
+            <h2>Resume Library</h2>
+            <p className="section-subtitle">
+              Upload and manage resumes used across your applications
+            </p>
+          </div>
 
-      <div className="resume-upload">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          aria-label="Upload resume"
-          onChange={handleUpload}
-          disabled={uploading}
-        />
-        {uploading && <p>Uploading…</p>}
-      </div>
-
-      {feedback && <p className="resume-feedback success">{feedback}</p>}
-      {error && <p className="resume-feedback error">{error}</p>}
-
-      <ul className="resume-list">
-        {resumes.map(resume => (
-          <li key={resume.resumeId} className="resume-item">
-            <div>
-              <strong>{resume.fileName}</strong>
-              <div className="resume-meta">
-                Uploaded {new Date(resume.createdAt).toLocaleString()}
+          <div className="dashboard-card">
+            <h3>Upload New Resume</h3>
+            <div className="resume-upload modern-upload">
+              <div className="upload-zone">
+                <span className="upload-icon">📄</span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  aria-label="Upload resume"
+                  onChange={handleUpload}
+                  disabled={uploading}
+                  id="resume-upload-input"
+                />
+                <label
+                  htmlFor="resume-upload-input"
+                  className="btn btn-outline"
+                >
+                  {uploading ? 'Uploading...' : 'Choose File'}
+                </label>
+                <span className="upload-hint">PDF or Word (max 15 MB)</span>
               </div>
             </div>
-            <div className="resume-actions">
-              <a href={resume.downloadUrl} target="_blank" rel="noreferrer">
-                View
-              </a>
-              <button type="button" onClick={() => handleDelete(resume.resumeId)}>
-                Delete
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
 
-      {resumes.length === 0 && !uploading && !error && (
-        <p>You have not uploaded any resumes yet.</p>
+            {uploading && <div className="loading-spinner">Uploading...</div>}
+            {feedback && (
+              <div className={`alert alert-success`}>{feedback}</div>
+            )}
+            {error && <div className={`alert alert-error`}>{error}</div>}
+          </div>
+
+          {resumes.length > 0 ? (
+            <div className="dashboard-card">
+              <h3>Your Resumes</h3>
+              <ul className="resume-list">
+                {resumes.map(resume => (
+                  <li key={resume.resumeId} className="resume-item">
+                    <div className="resume-icon">📄</div>
+                    <div className="resume-info">
+                      <strong>{resume.fileName}</strong>
+                      <div className="resume-meta">
+                        Uploaded {new Date(resume.createdAt).toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="resume-actions">
+                      <a
+                        href={resume.downloadUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn btn-outline btn-sm"
+                      >
+                        View
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(resume.resumeId)}
+                        className="btn btn-outline btn-sm btn-danger"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <div className="dashboard-card">
+              <div className="empty-state">
+                <div className="empty-state-icon">📁</div>
+                <h3>No resumes uploaded</h3>
+                <p>Upload your first resume to use in job applications.</p>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

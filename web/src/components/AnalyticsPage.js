@@ -62,20 +62,34 @@ function AnalyticsPage({ user }) {
   if (!user?.username) {
     return (
       <div className="analytics-page">
-        <h2>Analytics</h2>
-        <p>Please sign in to view analytics.</p>
+        <div className="section-header">
+          <h2>Analytics</h2>
+        </div>
+        <div className="dashboard-card">
+          <div className="empty-state">
+            <div className="empty-state-icon">📊</div>
+            <h3>Sign in to view analytics</h3>
+            <p>Track your career progress with detailed analytics.</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="analytics-page">
-      <h2>Analytics</h2>
-      <p className="analytics-subtitle">
-        High-level metrics aggregated from CareerHelper activity.
-      </p>
+      <div className="section-header">
+        <h2>Analytics</h2>
+        <p className="section-subtitle">
+          High-level metrics aggregated from CareerHelper activity
+        </p>
+      </div>
 
-      <DashboardInsights analytics={analytics} isLoading={isLoading} error={error} />
+      <DashboardInsights
+        analytics={analytics}
+        isLoading={isLoading}
+        error={error}
+      />
 
       {statusRows.length > 0 && (
         <div className="dashboard-card analytics-status-table">
