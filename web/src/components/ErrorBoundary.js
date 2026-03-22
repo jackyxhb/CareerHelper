@@ -1,6 +1,6 @@
 import React from 'react';
-import { logError } from './logger';
-import { analytics, AnalyticsEvent } from './analytics';
+import { logError } from '../utils/logger';
+import { analytics } from '../utils/analytics';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {

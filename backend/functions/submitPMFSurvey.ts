@@ -1,9 +1,9 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { Logger } from '../utils/Logger';
-import { ErrorHandler, ErrorResponse } from '../utils/ErrorHandler';
-import { RequestHandler } from '../utils/RequestHandler';
+import Logger from '../utils/logger';
+import { ErrorHandler, ApiErrorResponse } from '../utils/errorHandler';
+import { RequestHandler } from '../utils/requestHandler';
 
-const logger = new Logger('pmfSurvey');
+const logger = new Logger({ function: 'submitPMFSurvey' });
 
 interface PMFResponse {
   userId: string;
@@ -21,79 +21,51 @@ const PMF_THRESHOLDS = {
   PROMOTER: 10,
 };
 
-const USE_CASES = [
-  'Job Application Tracking',
-  'Resume Building',
-  'Interview Preparation',
-  'Career Planning',
-  'Skill Assessment',
-  'Network Building',
-  'Salary Negotiation',
-  'Other',
-];
-
-const IMPROVEMENTS = [
-  'Better job search features',
-  'More integrations (LinkedIn, Indeed)',
-  'Improved mobile experience',
-  'AI-powered recommendations',
-  'Interview preparation tools',
-  'Better analytics',
-  'Faster performance',
-  'Other',
-];
-
-export async function handler(
+export const handler = async (
   event: APIGatewayProxyEvent,
   context: { functionName: string }
-): Promise<APIGatewayProxyResult | ErrorResponse> {
+): Promise<APIGatewayProxyResult | ApiErrorResponse> => {
   const requestId = context.functionName;
+  const requestHandler = new RequestHandler('submitPMFSurvey', { requestId });
 
   try {
     if (event.httpMethod === 'POST') {
-      return handleSubmit(event, requestId);
+      return handleSubmit(event, requestHandler, requestId);
     } else if (event.httpMethod === 'GET') {
-      return handleGetStats(event, requestId);
+      return handleGetStats(requestId);
     }
 
     return ErrorHandler.createErrorResponse(
-      405,
-      'Method Not Allowed',
-      'This endpoint supports GET and POST only',
-      requestId
+      {
+        name: 'ValidationError',
+        message: 'This endpoint supports GET and POST only',
+      },
+      { requestId }
     );
   } catch (error) {
-    logger.error('Error in PMF survey handler', error as Error, { requestId });
-    return ErrorHandler.createErrorResponse(
-      500,
-      'Internal Server Error',
-      'Failed to process PMF survey',
-      requestId
-    );
+    logger.error('Error in PMF survey handler', { error }, error as Error);
+    return ErrorHandler.createErrorResponse(error as Error, { requestId });
   }
-}
+};
 
-async function handleSubmit(
+function handleSubmit(
   event: APIGatewayProxyEvent,
+  requestHandler: RequestHandler,
   requestId: string
-): Promise<APIGatewayProxyResult | ErrorResponse> {
-  const body = RequestHandler.parseBody<PMFResponse>(event.body);
+): ApiErrorResponse | Promise<APIGatewayProxyResult> {
+  const body = requestHandler.parseBody<PMFResponse>(event, ['userId']);
 
-  if (!body.userId || body.score === undefined) {
+  if (body.score === undefined || body.score === null) {
     return ErrorHandler.createErrorResponse(
-      400,
-      'Bad Request',
-      'userId and score are required',
-      requestId
+      { name: 'ValidationError', message: 'score is required' },
+      { requestId }
     );
   }
 
   if (body.score < 0 || body.score > 10) {
     return ErrorHandler.createErrorResponse(
-      400,
-      'Bad Request',
-      'Score must be between 0 and 10',
-      requestId
+      { name: 'ValidationError', message: 'Score must be between 0 and 10' },
+      { requestId }
     );
   }
 
@@ -123,51 +95,30 @@ async function handleSubmit(
         ? "Thank you for your feedback. We'll work to improve."
         : "Thank you for your feedback. We're committed to making CareerHelper better.";
 
-  return {
-    statusCode: 200,
-    headers: RequestHandler.corsHeaders,
-    body: JSON.stringify({
-      success: true,
-      category,
-      message,
-      stats: await calculateStats(),
-    }),
-  };
+  return ErrorHandler.createSuccessResponse({
+    success: true,
+    category,
+    message,
+    stats: {
+      responseCount: 1,
+      averageScore: response.score,
+    },
+  });
 }
 
-async function handleGetStats(
-  event: APIGatewayProxyEvent,
-  requestId: string
-): Promise<APIGatewayProxyResult | ErrorResponse> {
-  const stats = await calculateStats();
-
-  return {
-    statusCode: 200,
-    headers: RequestHandler.corsHeaders,
-    body: JSON.stringify(stats),
-  };
-}
-
-function getCategory(score: number): 'Promoter' | 'Passive' | 'Detractor' {
-  if (score >= PMF_THRESHOLDS.PROMOTER) return 'Promoter';
-  if (score >= PMF_THRESHOLDS.PASSIVE) return 'Passive';
-  return 'Detractor';
-}
-
-async function calculateStats(): Promise<{
-  responseCount: number;
-  averageScore: number;
-  npsScore: number;
-  promoters: number;
-  passives: number;
-  detractors: number;
-}> {
-  return {
+function handleGetStats(requestId: string): ApiErrorResponse {
+  return ErrorHandler.createSuccessResponse({
     responseCount: 0,
     averageScore: 0,
     npsScore: 0,
     promoters: 0,
     passives: 0,
     detractors: 0,
-  };
+  });
+}
+
+function getCategory(score: number): 'Promoter' | 'Passive' | 'Detractor' {
+  if (score >= PMF_THRESHOLDS.PROMOTER) return 'Promoter';
+  if (score >= PMF_THRESHOLDS.PASSIVE) return 'Passive';
+  return 'Detractor';
 }

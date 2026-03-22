@@ -1,9 +1,9 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { Logger } from '../utils/Logger';
-import { ErrorHandler, ErrorResponse } from '../utils/ErrorHandler';
-import { RequestHandler } from '../utils/RequestHandler';
+import Logger from '../utils/logger';
+import { ErrorHandler, ApiErrorResponse } from '../utils/errorHandler';
+import { RequestHandler } from '../utils/requestHandler';
 
-const logger = new Logger('tailorResume');
+const logger = new Logger({ function: 'tailorResume' });
 
 interface TailorRequest {
   resumeText: string;
@@ -153,32 +153,28 @@ function generateSuggestions(
   return suggestions;
 }
 
-export async function handler(
+export const handler = async (
   event: APIGatewayProxyEvent,
   context: { functionName: string }
-): Promise<APIGatewayProxyResult | ErrorResponse> {
+): Promise<APIGatewayProxyResult | ApiErrorResponse> => {
   const requestId = context.functionName;
+  const requestHandler = new RequestHandler('tailorResume', { requestId });
 
   try {
     if (event.httpMethod !== 'POST') {
       return ErrorHandler.createErrorResponse(
-        405,
-        'Method Not Allowed',
-        'This endpoint only accepts POST requests',
-        requestId
+        {
+          name: 'ValidationError',
+          message: 'This endpoint only accepts POST requests',
+        },
+        { requestId }
       );
     }
 
-    const body = RequestHandler.parseBody<TailorRequest>(event.body);
-
-    if (!body.resumeText || !body.jobDescription) {
-      return ErrorHandler.createErrorResponse(
-        400,
-        'Bad Request',
-        'resumeText and jobDescription are required',
-        requestId
-      );
-    }
+    const body = requestHandler.parseBody<TailorRequest>(event, [
+      'resumeText',
+      'jobDescription',
+    ]);
 
     logger.info('Tailoring resume', {
       resumeLength: body.resumeText.length,
@@ -192,7 +188,7 @@ export async function handler(
     const resumeLines = body.resumeText
       .split('\n\n')
       .filter(line => line.trim());
-    const sections: TailoredSection[] = resumeLines.map(line => {
+    const sections: TailoredSection[] = resumeLines.map((line: string) => {
       const { tailored, changes, matchScore } = tailoreSection(
         line,
         jobKeywords,
@@ -243,18 +239,9 @@ export async function handler(
       keywordsAddedCount: keywordsAdded.length,
     });
 
-    return {
-      statusCode: 200,
-      headers: RequestHandler.corsHeaders,
-      body: JSON.stringify(result),
-    };
+    return ErrorHandler.createSuccessResponse(result);
   } catch (error) {
-    logger.error('Error tailoring resume', error as Error, { requestId });
-    return ErrorHandler.createErrorResponse(
-      500,
-      'Internal Server Error',
-      'Failed to tailor resume. Please try again.',
-      requestId
-    );
+    logger.error('Error tailoring resume', { error }, error as Error);
+    return ErrorHandler.createErrorResponse(error as Error, { requestId });
   }
-}
+};

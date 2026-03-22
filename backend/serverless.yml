@@ -209,6 +209,27 @@ functions:
           path: /health
           method: get
 
+  tailorResume:
+    handler: functions/tailorResume.handler
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /resume/tailor
+          method: post
+
+  submitPMFSurvey:
+    handler: functions/submitPMFSurvey.handler
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /pmf
+          method: post
+      - httpApi:
+          path: /pmf
+          method: get
+
 resources:
   Resources:
     UsersTable:

@@ -91,16 +91,6 @@ function App({ user, signOut }) {
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      const hasSeenOnboarding = localStorage.getItem('onboarding_complete');
-      if (!hasSeenOnboarding) {
-        setShowOnboarding(true);
-      }
-      analytics.identify(user.username);
-    }
-  }, [user]);
-
   const handleOnboardingComplete = () => {
     localStorage.setItem('onboarding_complete', 'true');
     setShowOnboarding(false);
@@ -110,7 +100,17 @@ function App({ user, signOut }) {
     localStorage.setItem('onboarding_complete', 'true');
     setShowOnboarding(false);
   };
+
+  useEffect(() => {
     let isMounted = true;
+
+    if (user) {
+      const hasSeenOnboarding = localStorage.getItem('onboarding_complete');
+      if (!hasSeenOnboarding) {
+        setShowOnboarding(true);
+      }
+      analytics.identify(user.username);
+    }
 
     const bootstrapProfile = async () => {
       if (!user) {
@@ -175,13 +175,25 @@ function App({ user, signOut }) {
         <main className="App-main">
           {isProfileLoading && <p>Loading your profile…</p>}
           <Routes>
-            <Route path="/" element={<Dashboard user={user} profile={profile} />} />
+            <Route
+              path="/"
+              element={<Dashboard user={user} profile={profile} />}
+            />
             <Route path="/jobs" element={<JobSearch user={user} />} />
-            <Route path="/experiences" element={<ExperienceManager user={user} />} />
-            <Route path="/applications" element={<ApplicationTracker user={user} />} />
+            <Route
+              path="/experiences"
+              element={<ExperienceManager user={user} />}
+            />
+            <Route
+              path="/applications"
+              element={<ApplicationTracker user={user} />}
+            />
             <Route path="/analytics" element={<AnalyticsPage user={user} />} />
             <Route path="/resumes" element={<ResumeManager user={user} />} />
-            <Route path="/resume-tailor" element={<ResumeTailor user={user} />} />
+            <Route
+              path="/resume-tailor"
+              element={<ResumeTailor user={user} />}
+            />
           </Routes>
         </main>
         {showOnboarding && (
