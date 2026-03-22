@@ -1,14 +1,52 @@
 # Play Store Beta Setup Guide
 
-This document describes how to set up and distribute the CareerHelper app via Google Play for beta testing.
+This document describes how to set up and distribute the CareerHelper React Native app via Google Play for beta testing.
 
 ## Prerequisites
 
 1. Google Play Developer Account ($25 one-time)
-2. Android Studio installed
-3. Google Cloud Console access
+2. Node.js 18+ and yarn installed
+3. Android Studio installed
+4. Google Cloud Console access
 
-## Step 1: Create Google Play Console Record
+## Build the App
+
+### Pre-build Steps
+```bash
+cd mobile
+yarn install
+```
+
+### Option A: Build Android Natively
+
+1. Build the debug APK:
+```bash
+cd mobile/android
+./gradlew assembleDebug
+# Output: app/build/outputs/apk/debug/app-debug.apk
+```
+
+2. For release AAB (Play Store):
+```bash
+./gradlew assembleRelease
+# Output: app/build/outputs/apk/release/app-release.apk
+# Or .aab: app/build/outputs/bundle/release/app-release.aab
+```
+
+### Option B: Use Expo (Recommended)
+
+1. Install Expo CLI:
+```bash
+npm install -g expo-cli
+```
+
+2. Generate Android build:
+```bash
+cd mobile
+expo build:android --release-channel beta
+```
+
+## Step 4: Create Google Play Console Record
 
 1. Go to [Google Play Console](https://play.google.com/console)
 2. Click "Create app"
@@ -18,7 +56,7 @@ This document describes how to set up and distribute the CareerHelper app via Go
    - **App type**: Android app
    - **Free or paid**: Free
 
-## Step 2: Configure App Signing
+## Step 5: Configure App Signing
 
 ### Option A: Use Play App Signing (Recommended)
 1. Go to Release → Setup → App signing
@@ -39,22 +77,7 @@ This document describes how to set up and distribute the CareerHelper app via Go
    ```
 2. Upload the `.pem` certificate
 
-## Step 3: Build Android APK/AAB
-
-```bash
-cd mobile/android
-
-# Debug build (for internal testing)
-./gradlew assembleDebug
-# Output: app/build/outputs/apk/debug/app-debug.apk
-
-# Release build (for beta)
-./gradlew assembleRelease
-# Output: app/build/outputs/apk/release/app-release.apk
-# Or .aab for Play Store: app/build/outputs/bundle/release/app-release.aab
-```
-
-## Step 4: Create Beta Track
+## Step 6: Create Beta Track
 
 1. Go to Release → Production → Create release
 2. Or use the Testing tab for beta tracks
@@ -65,7 +88,7 @@ cd mobile/android
 - **Open testing (Beta)**: Public, anyone can join
 - **Production**: Public release
 
-## Step 5: Upload AAB
+## Step 7: Upload AAB
 
 1. Go to Testing → Closed testing → Alpha
 2. Click "Create new release" or "Upload"
@@ -78,11 +101,12 @@ cd mobile/android
    - Job search and tracking
    - Application management
    - Experience portfolio builder
-   - Resume upload and storage
+   - Resume upload with AI tailoring
+   - Analytics dashboard
    - Offline support
    ```
 
-## Step 6: Configure Tester Access
+## Step 8: Configure Tester Access
 
 ### Closed Testing (Alpha)
 1. Create tester email list or Google Group
@@ -94,7 +118,7 @@ cd mobile/android
 2. Use opt-in link: `https://play.google.com/apps/testing/com.careerhelper.app`
 3. Share link with testers
 
-## Step 7: Track Testing
+## Step 9: Track Testing
 
 ### Metrics Available:
 - **Installs**: Number of beta testers
