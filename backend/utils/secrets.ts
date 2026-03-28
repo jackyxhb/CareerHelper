@@ -113,6 +113,23 @@ export class SecretsManager {
   }
 
   /**
+   * Get Adzuna API credentials (app_id + app_key) for NZ/AU job search.
+   * Returns null if not configured so callers can skip gracefully.
+   */
+  async getAdzunaCredentials(stage: string = process.env.STAGE || 'dev'): Promise<{ appId: string; appKey: string } | null> {
+    try {
+      const [appId, appKey] = await Promise.all([
+        this.getSSMParameter(`/careerhelper/${stage}/adzuna-app-id`),
+        this.getSSMParameter(`/careerhelper/${stage}/adzuna-app-key`),
+      ]);
+      return appId && appKey ? { appId, appKey } : null;
+    } catch {
+      // Credentials not yet configured — Adzuna provider will be skipped.
+      return null;
+    }
+  }
+
+  /**
    * Get database credentials for the current stage
    * @param {string} stage - Deployment stage (dev, prod, etc.)
    * @returns {Promise<any>} Database credentials

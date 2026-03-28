@@ -48,6 +48,7 @@ provider:
     API_KEY: ${ssm:/careerhelper/${self:provider.stage}/api-key}
     JOB_SEARCH_API_URL: https://jsearch.p.rapidapi.com/search
     JOB_SEARCH_API_HOST: jsearch.p.rapidapi.com
+    ADZUNA_API_URL: https://api.adzuna.com/v1/api/jobs
   iamRoleStatements:
     - Effect: Allow
       Action:
