@@ -19,7 +19,7 @@ jobs:
     - name: Install dependencies
       run: yarn install --frozen-lockfile
     - name: Run tests
-      run: yarn workspace web run test && yarn workspace backend run test
+      run: yarn workspace careerhelper-web run test && yarn workspace careerhelper-backend run test
     - name: Build shared
       run: cd shared && yarn build
     - name: Build web
