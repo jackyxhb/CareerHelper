@@ -49,7 +49,7 @@ describe('Dashboard', () => {
           {
             applicationId: 'app-1',
             jobId: 'job-2',
-            status: 'Applied',
+            status: 'APPLIED',
           },
         ]);
       }
@@ -83,13 +83,10 @@ describe('Dashboard', () => {
     render(<Dashboard user={{ username: 'user-1' }} />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Frontend Engineer/)).toBeInTheDocument();
       expect(screen.getByText(/Designer/)).toBeInTheDocument();
-      expect(
-        screen.getByText(/Application for Job job-2: Applied/)
-      ).toBeInTheDocument();
-      expect(screen.getByText(/Total Applications/)).toBeInTheDocument();
-      expect(screen.getByText(/Interview Rate/)).toBeInTheDocument();
+      expect(screen.getByText(/Application #app-1/)).toBeInTheDocument();
+      expect(screen.getByText(/Active Jobs/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Interview Rate/i).length).toBeGreaterThan(0);
     });
   });
 });

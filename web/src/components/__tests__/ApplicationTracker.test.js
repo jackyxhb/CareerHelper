@@ -19,7 +19,7 @@ describe('ApplicationTracker', () => {
         {
           applicationId: 'app-1',
           jobId: 'job-1',
-          status: 'Interviewing',
+          status: 'INTERVIEWING',
           appliedAt: new Date('2024-01-02').toISOString(),
         },
       ])
@@ -31,7 +31,7 @@ describe('ApplicationTracker', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Product Designer/i)).toBeInTheDocument();
-      expect(screen.getByText(/Status: Interviewing/i)).toBeInTheDocument();
+      expect(screen.getByText(/Interviewing/i)).toBeInTheDocument();
     });
   });
 
@@ -41,7 +41,7 @@ describe('ApplicationTracker', () => {
     render(<ApplicationTracker user={{ username: 'user-1' }} />);
 
     await waitFor(() => {
-      expect(screen.getByRole('list')).toBeEmptyDOMElement();
+      expect(screen.getByText(/No applications yet/i)).toBeInTheDocument();
     });
   });
 });

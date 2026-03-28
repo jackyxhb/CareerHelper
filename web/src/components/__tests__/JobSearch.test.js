@@ -35,7 +35,7 @@ describe('JobSearch', () => {
   it('filters jobs by search term', async () => {
     render(<JobSearch />);
 
-    const searchInput = screen.getByPlaceholderText(/search jobs/i);
+    const searchInput = screen.getByPlaceholderText(/Software Engineer, Product Manager/i);
 
     await waitFor(() => {
       expect(screen.getByText(/Product Designer/)).toBeInTheDocument();
@@ -48,5 +48,10 @@ describe('JobSearch', () => {
       expect(screen.queryByText(/Product Designer/)).not.toBeInTheDocument();
       expect(screen.getByText(/Backend Engineer/)).toBeInTheDocument();
     });
+  });
+
+  it('shows empty state before any search', () => {
+    render(<JobSearch />);
+    expect(screen.getByText(/Ready to find your next role/i)).toBeInTheDocument();
   });
 });
