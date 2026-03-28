@@ -1,63 +1,89 @@
 # Task Plan
 
-> Use this template for complex multi-session tasks. Update before ending each session.
+> Fill this in before starting any task requiring >3 tool calls.
+> Append a Session Log entry before ending each session.
 
 ---
 
-## Task: [Task Name]
+## Task: [Replace with your task name]
 
-**Created:** [Date]
-**Status:** [In Progress | Blocked | Complete]
-**Branch:** [feature/branch-name]
+**Created:** [YYYY-MM-DD]
+**Status:** In Progress | Blocked | Complete
+**Branch:** feature/[branch-name]
+**Max Loop Budget:** 5 sessions (escalate to human if exceeded)
 
 ---
 
 ## Objective
 
-[Brief description of what this task aims to accomplish]
+[One paragraph: what this task achieves and why it matters]
 
 ---
 
 ## Progress
 
 ### What's Been Done
-- [x] [Completed step 1]
-- [x] [Completed step 2]
+- [ ] [Step completed]
 
 ### What's Next
-- [ ] [Next step to complete]
-- [ ] [Subsequent step]
+- [ ] [Next step]
+- [ ] [Following step]
 
 ### Blockers
-- [List any blocking issues]
+- None
 
 ---
 
 ## Files Modified
-- [File 1]
-- [File 2]
+- [file path]
 
 ## Files to Review
-- [File to review]
+- [file path]
 
 ---
 
 ## Session Log
 
-### [Date] - Session N
-- Action: [What was accomplished]
-- Files changed: [List]
-- Next steps: [From this point]
+### [YYYY-MM-DD] — Session 1
+- **Action:** [What was accomplished]
+- **Files changed:** [List]
+- **Next steps:** [Exactly where to resume]
 
 ---
 
 ## Completion Criteria
 
-- [ ] Criterion 1
-- [ ] Criterion 2
+- [ ] All tests passing (`yarn test`)
+- [ ] Lint clean (`yarn lint`)
+- [ ] PR opened and AI review passed
 
 ---
 
-## Notes
+## Example (delete when using)
 
-[Any additional context or notes]
+```
+## Task: Add job application status filtering
+
+Created: 2026-03-29
+Status: In Progress
+Branch: feature/application-status-filter
+
+Objective:
+Allow users to filter their job applications by status (Applied, Interview, Offer, Rejected).
+Required by product spec v2.3. Backend endpoint exists; need frontend filter UI + shared types.
+
+Progress:
+What's Been Done:
+  [x] Added FilterStatus enum to shared/src/types.ts
+  [x] Updated ApplicationsAPI.list() to accept status param
+What's Next:
+  [ ] Add filter dropdown to web/src/pages/Applications.tsx
+  [ ] Add filter to mobile/src/screens/ApplicationsScreen.tsx
+  [ ] Write tests for filter logic
+
+Session Log:
+2026-03-29 — Session 1
+  Action: Added shared types and updated backend handler
+  Files changed: shared/src/types.ts, backend/functions/applications.ts
+  Next steps: Start web filter UI at web/src/pages/Applications.tsx line 42
+```

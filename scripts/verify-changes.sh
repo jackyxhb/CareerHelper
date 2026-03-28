@@ -8,6 +8,18 @@ echo "=========================================="
 echo "CareerHelper Verification Script"
 echo "=========================================="
 
+# Check if PLAN.md is still the blank template when code files are staged
+STAGED_CODE=$(git diff --cached --name-only | grep -E '^(backend|web|mobile|shared|infrastructure)/' || true)
+if [ -n "$STAGED_CODE" ]; then
+  if grep -q '^\*\*Status:\*\* \[In Progress' PLAN.md 2>/dev/null; then
+    echo "⚠️  PLAN.md appears to still be a blank template."
+    echo "   You are staging code changes without an active plan."
+    echo "   Fill in PLAN.md with the real task name and objective before committing."
+    echo "   (Continuing — this is a warning, not a blocker)"
+    echo ""
+  fi
+fi
+
 # Get affected packages from git diff
 AFFECTED_PACKAGES=$(git diff --name-only HEAD | grep -E '^([a-z]+)/' | cut -d'/' -f1 | sort -u | tr '\n' ' ')
 

@@ -1,0 +1,75 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
+
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR diff
+        id: diff
+        run: |
+          git diff origin/main...HEAD > /tmp/pr.diff
+          echo "diff_lines=$(wc -l < /tmp/pr.diff)" >> $GITHUB_OUTPUT
+
+      - name: Skip if diff is empty
+        if: steps.diff.outputs.diff_lines == '0'
+        run: |
+          echo "No diff found, skipping AI review."
+          exit 0
+
+      - name: Run AI review via Claude API
+        id: review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          DIFF=$(cat /tmp/pr.diff | head -c 8000)
+          REVIEW=$(curl -s https://api.anthropic.com/v1/messages \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "$(jq -n \
+              --arg diff "$DIFF" \
+              '{
+                model: "claude-sonnet-4-6",
+                max_tokens: 1024,
+                messages: [{
+                  role: "user",
+                  content: ("You are a code reviewer for the CareerHelper project (Node.js Lambda monorepo).\n\nReview this PR diff for:\n1. TypeScript issues (no `any` types, explicit return types)\n2. Architecture boundary violations (web must not import from backend or mobile)\n3. Missing test coverage for new logic\n4. Security issues (hardcoded secrets, missing input validation, XSS/injection)\n5. Missing ANCHORS.md or CLAUDE.md updates for architectural changes\n\nOutput format:\n**Verdict:** PASS | PASS-WITH-NOTES | FAIL\n\n**Issues:**\n- [CRITICAL|IMPORTANT|MINOR] <file>:<line> — <description>\n\n**Summary:** <one sentence>\n\nDiff:\n" + $diff)
+                }]
+              }' \
+            )")
+          echo "review<<EOF" >> $GITHUB_OUTPUT
+          echo "$REVIEW" | jq -r '.content[0].text' >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Post review comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const review = `${{ steps.review.outputs.review }}`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## AI Code Review\n\n${review}\n\n---\n*Reviewed by Claude claude-sonnet-4-6 via [ai-review.yml](.github/workflows/ai-review.yml)*`
+            });
+
+      - name: Fail if CRITICAL issues found
+        run: |
+          REVIEW="${{ steps.review.outputs.review }}"
+          if echo "$REVIEW" | grep -q "\[CRITICAL\]"; then
+            echo "AI review found CRITICAL issues. Review the PR comment before merging."
+            exit 1
+          fi

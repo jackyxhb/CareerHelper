@@ -4,14 +4,16 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/**'
-      - 'functions/**'
+      - 'backend/functions/**'
+      - 'backend/src/**'
+      - 'shared/src/**'
       - 'docs/**'
       - 'README.md'
   pull_request:
     paths:
-      - 'src/**'
-      - 'functions/**'
+      - 'backend/functions/**'
+      - 'backend/src/**'
+      - 'shared/src/**'
       - 'docs/**'
       - 'README.md'
 
@@ -54,6 +56,55 @@ jobs:
         run: |
           BREAKING_CHANGES=$(git log --format='%s' --grep="breaking" --since='30 days ago' | wc -l)
           if [ "$BREAKING_CHANGES" -gt 0 ]; then
-            echo "Found $BREAKING_CHANGES commits with 'breaking' keyword"
-            echo "Ensure CHANGELOG.md and docs are updated"
+            echo "Found $BREAKING_CHANGES commits with 'breaking' keyword in last 30 days."
+
+            # Check if docs/api.md was recently updated
+            API_DOC="docs/api.md"
+            if [ -f "$API_DOC" ]; then
+              API_DATE=$(git log -1 --format='%ci' -- "$API_DOC")
+              STALE_LAMBDAS=$(git log --since="$API_DATE" --format='%s' \
+                --name-only -- 'backend/functions/**' \
+                | grep -E '\.(js|ts)$' | head -10 || true)
+              if [ -n "$STALE_LAMBDAS" ]; then
+                echo "ERROR: Breaking changes exist and docs/api.md has not been updated"
+                echo "since these Lambda changes:"
+                echo "$STALE_LAMBDAS"
+                echo ""
+                echo "Update docs/api.md to reflect the current API before merging."
+                exit 1
+              fi
+            fi
+
+            echo "docs/api.md appears up to date — OK."
           fi
+
+      - name: Fail if API docs older than 30 days with Lambda changes
+        run: |
+          API_DOC="docs/api.md"
+          if [ ! -f "$API_DOC" ]; then
+            echo "docs/api.md not found — skipping age check."
+            exit 0
+          fi
+
+          API_TIMESTAMP=$(git log -1 --format='%ct' -- "$API_DOC")
+          NOW=$(date +%s)
+          AGE_DAYS=$(( (NOW - API_TIMESTAMP) / 86400 ))
+
+          echo "docs/api.md age: ${AGE_DAYS} days"
+
+          if [ "$AGE_DAYS" -gt 30 ]; then
+            # Check if any Lambda functions changed in that period
+            RECENT_LAMBDAS=$(git log --since="${AGE_DAYS} days ago" \
+              --format='%s' --name-only -- 'backend/functions/**' \
+              | grep -E '\.(js|ts)$' | head -5 || true)
+            if [ -n "$RECENT_LAMBDAS" ]; then
+              echo "ERROR: docs/api.md is ${AGE_DAYS} days old and Lambda functions"
+              echo "have been modified in that period:"
+              echo "$RECENT_LAMBDAS"
+              echo ""
+              echo "Review and update docs/api.md."
+              exit 1
+            fi
+          fi
+
+          echo "API doc freshness check passed."

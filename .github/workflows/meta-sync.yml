@@ -1,0 +1,110 @@
+name: Meta-Doc Consolidation Check
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  meta-sync:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changes
+        run: |
+          BASE=${{ github.event.pull_request.base.sha }}
+          HEAD=${{ github.event.pull_request.head.sha }}
+
+          # Files changed in this PR
+          CHANGED=$(git diff --name-only "$BASE" "$HEAD")
+
+          # Check if architectural files changed
+          ARCH_CHANGED=$(echo "$CHANGED" | grep -E \
+            '^(backend/|shared/|infrastructure/|serverless\.yml|backend/serverless\.yml)' \
+            || true)
+
+          # Check if meta-docs were updated
+          META_CHANGED=$(echo "$CHANGED" | grep -E \
+            '^(CLAUDE\.md|ANCHORS\.md)' \
+            || true)
+
+          echo "arch_changed<<EOF" >> $GITHUB_OUTPUT
+          echo "$ARCH_CHANGED" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "meta_changed<<EOF" >> $GITHUB_OUTPUT
+          echo "$META_CHANGED" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          if [ -n "$ARCH_CHANGED" ] && [ -z "$META_CHANGED" ]; then
+            echo "needs_update=true" >> $GITHUB_OUTPUT
+          else
+            echo "needs_update=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post consolidation warning
+        if: steps.changes.outputs.needs_update == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const archFiles = `${{ steps.changes.outputs.arch_changed }}`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Meta-Doc Consolidation Warning
+
+            This PR modifies architectural files but does not update \`CLAUDE.md\` or \`ANCHORS.md\`.
+
+            **Changed architectural files:**
+            \`\`\`
+            ${archFiles}
+            \`\`\`
+
+            **Action required:** If this PR changes:
+            - Architecture or patterns → add/update an ADR in \`ANCHORS.md\`
+            - Commands, scripts, or file paths → update \`CLAUDE.md\`
+            - Data models → update both the Data Models section in \`CLAUDE.md\` and \`ANCHORS.md\`
+
+            If no meta-doc update is needed, add a comment explaining why and dismiss this warning.
+
+            ---
+            *Checked by [meta-sync.yml](.github/workflows/meta-sync.yml)*`
+            });
+
+      - name: Check docs not stale on breaking changes
+        run: |
+          BASE=${{ github.event.pull_request.base.sha }}
+          HEAD=${{ github.event.pull_request.head.sha }}
+
+          # Look for breaking change indicators in commit messages
+          BREAKING=$(git log "$BASE..$HEAD" --format='%s %b' \
+            | grep -iE 'breaking|BREAKING|!:' || true)
+
+          if [ -z "$BREAKING" ]; then
+            echo "No breaking changes detected — skipping doc staleness check."
+            exit 0
+          fi
+
+          echo "Breaking change commits found:"
+          echo "$BREAKING"
+
+          # Check if docs/api.md was updated in this PR
+          CHANGED=$(git diff --name-only "$BASE" "$HEAD")
+          API_UPDATED=$(echo "$CHANGED" | grep 'docs/api.md' || true)
+
+          if [ -z "$API_UPDATED" ]; then
+            echo ""
+            echo "ERROR: Breaking changes detected but docs/api.md was not updated."
+            echo "Update docs/api.md before merging breaking changes."
+            exit 1
+          fi
+
+          echo "docs/api.md updated — OK."

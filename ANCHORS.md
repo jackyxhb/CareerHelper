@@ -110,6 +110,53 @@ Use AWS Amplify DataStore with:
 
 ---
 
+---
+
+## ADR-006: Agent Sandbox Isolation
+
+**Date:** 2026-03-29
+**Status:** Accepted
+
+### Context
+AI agents running directly on developer machines could accidentally execute destructive
+operations (force-push, deploy to production, rm -rf) without proper gating.
+
+### Decision
+Implement two layers of sandbox protection:
+1. `.claude/settings.local.json` — Claude Code permission allowlist/denylist for this project
+2. `scripts/sandbox-check.sh` — Runtime gate requiring explicit confirmation for destructive ops outside CI
+
+All deployment operations are restricted to CI/CD pipelines. Local agent runs use
+`isolation: "worktree"` for significant changes.
+
+### Consequences
+- **Positive:** Agents cannot accidentally deploy or destroy data; developers can safely run agents
+- **Negative:** Slight friction for intentional local deployments (requires "yes-i-know" confirmation)
+
+---
+
+## ADR-007: Agent Orchestration (Supervisor Pattern)
+
+**Date:** 2026-03-29
+**Status:** Accepted
+
+### Context
+Complex multi-workstream tasks (>2 parallel concerns, >15 tool calls) executed monolithically
+fill the context window and produce lower quality output.
+
+### Decision
+Use a Supervisor pattern housed in `.agents/`:
+- Primary agent decomposes the task and spawns role-specific sub-agents
+- Sub-agents use prompt templates from `.agents/prompts/` (reviewer, test-writer, infrastructure)
+- Sub-agents are scoped, sandboxed, and report results back to the primary agent
+- Single-Agent System (SAS) for now — no full MAS until warranted by task volume
+
+### Consequences
+- **Positive:** Parallel workstreams, protected context, role-specialized output quality
+- **Negative:** Coordination overhead for simple tasks (skip orchestration if <3 tool calls)
+
+---
+
 ## Active Decisions
 
 | ID | Title | Status |
@@ -119,6 +166,8 @@ Use AWS Amplify DataStore with:
 | ADR-003 | DynamoDB Single-Table Design | Accepted |
 | ADR-004 | Circuit Breaker Pattern | Accepted |
 | ADR-005 | Amplify DataStore for Mobile | Accepted |
+| ADR-006 | Agent Sandbox Isolation | Accepted |
+| ADR-007 | Agent Orchestration (Supervisor Pattern) | Accepted |
 
 ---
 
