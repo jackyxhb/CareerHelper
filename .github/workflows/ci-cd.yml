@@ -14,7 +14,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'yarn'
     - name: Install dependencies
       run: yarn install:all
@@ -34,7 +34,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18'
+        node-version: '20'
     - name: Install serverless
       run: npm install -g serverless
     - name: Configure AWS
@@ -55,7 +55,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18'
+        node-version: '20'
     - name: Install Amplify CLI
       run: npm install -g @aws-amplify/cli
     - name: Configure AWS
