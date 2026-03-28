@@ -9,9 +9,9 @@
   ],
   "scripts": {
     "install:all": "yarn install",
-    "build": "yarn workspaces foreach -pt run build",
-    "test": "yarn workspaces foreach -pt run test",
-    "test:coverage": "yarn workspaces foreach -pt run test:coverage",
+    "build": "yarn workspace shared run build && yarn workspace web run build",
+    "test": "yarn workspace web run test && yarn workspace backend run test",
+    "test:coverage": "yarn workspace web run test:coverage && yarn workspace backend run test:coverage",
     "deploy:backend": "cd backend && sls deploy",
     "deploy:web": "cd web && DISABLE_ESLINT_PLUGIN=true yarn build && aws s3 sync build/ s3://careerhelper-web-dev-1765124463 --delete",
     "deploy:mobile": "cd mobile && amplify push",
