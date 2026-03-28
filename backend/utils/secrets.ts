@@ -1,7 +1,4 @@
-import {
-  SSMClient,
-  GetParameterCommand,
-} from '@aws-sdk/client-ssm';
+import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 import {
   SecretsManagerClient,
   GetSecretValueCommand,
@@ -15,7 +12,8 @@ export class SecretsManager {
   private logger: Logger;
 
   constructor() {
-    const region = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'us-east-1';
+    const region =
+      process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'us-east-1';
     this.ssm = new SSMClient({ region });
     this.secretsManager = new SecretsManagerClient({ region });
     this.cache = new Map();
@@ -87,7 +85,9 @@ export class SecretsManager {
    * @param {string} stage - Deployment stage (dev, prod, etc.)
    * @returns {Promise<string>} JWT secret
    */
-  async getJWTSecret(stage: string = process.env.STAGE || 'dev'): Promise<string> {
+  async getJWTSecret(
+    stage: string = process.env.STAGE || 'dev'
+  ): Promise<string> {
     const paramName = `/careerhelper/${stage}/jwt-secret`;
     return this.getSSMParameter(paramName);
   }
@@ -107,7 +107,9 @@ export class SecretsManager {
    * @param {string} stage
    * @returns {Promise<string>}
    */
-  async getJobSearchApiKey(stage: string = process.env.STAGE || 'dev'): Promise<string> {
+  async getJobSearchApiKey(
+    stage: string = process.env.STAGE || 'dev'
+  ): Promise<string> {
     const paramName = `/careerhelper/${stage}/job-search-api-key`;
     return this.getSSMParameter(paramName);
   }
@@ -116,7 +118,9 @@ export class SecretsManager {
    * Get Adzuna API credentials (app_id + app_key) for NZ/AU job search.
    * Returns null if not configured so callers can skip gracefully.
    */
-  async getAdzunaCredentials(stage: string = process.env.STAGE || 'dev'): Promise<{ appId: string; appKey: string } | null> {
+  async getAdzunaCredentials(
+    stage: string = process.env.STAGE || 'dev'
+  ): Promise<{ appId: string; appKey: string } | null> {
     try {
       const [appId, appKey] = await Promise.all([
         this.getSSMParameter(`/careerhelper/${stage}/adzuna-app-id`),
@@ -134,7 +138,9 @@ export class SecretsManager {
    * @param {string} stage - Deployment stage (dev, prod, etc.)
    * @returns {Promise<any>} Database credentials
    */
-  async getDatabaseCredentials(stage: string = process.env.STAGE || 'dev'): Promise<any> {
+  async getDatabaseCredentials(
+    stage: string = process.env.STAGE || 'dev'
+  ): Promise<any> {
     const secretId = `careerhelper/${stage}/database`;
     return this.getSecretValue(secretId);
   }

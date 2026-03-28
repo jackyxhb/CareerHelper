@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { testData } from '../fixtures/testData';
 import path from 'path';
 
 test.describe('Resume Management', () => {

@@ -16,9 +16,15 @@ export interface ApiSuccessResponse {
  * Error handling utility for CareerHelper Lambda functions
  */
 export class ErrorHandler {
-  static createErrorResponse(error: any, context: Record<string, any> = {}): ApiErrorResponse {
+  static createErrorResponse(
+    error: any,
+    context: Record<string, any> = {}
+  ): ApiErrorResponse {
     // Default error mappings
-    const errorMappings: Record<string, { statusCode: number; message: string }> = {
+    const errorMappings: Record<
+      string,
+      { statusCode: number; message: string }
+    > = {
       ValidationError: { statusCode: 400, message: 'Invalid input data' },
       NotFoundError: { statusCode: 404, message: 'Resource not found' },
       UnauthorizedError: { statusCode: 401, message: 'Unauthorized access' },
@@ -125,7 +131,11 @@ export class ErrorHandler {
     };
   }
 
-  static createSuccessResponse(data: any, statusCode = 200, headers: Record<string, string> = {}): ApiSuccessResponse {
+  static createSuccessResponse(
+    data: any,
+    statusCode = 200,
+    headers: Record<string, string> = {}
+  ): ApiSuccessResponse {
     return {
       statusCode,
       headers: {

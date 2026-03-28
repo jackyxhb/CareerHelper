@@ -75,10 +75,12 @@ describe('ResumeManager', () => {
 
     fireEvent.click(screen.getAllByText('Delete')[0]);
 
-    await waitFor(() => expect(API.del).toHaveBeenCalledWith(
-      'CareerHelperAPI',
-      '/uploads/resume/resume-123'
-    ));
+    await waitFor(() =>
+      expect(API.del).toHaveBeenCalledWith(
+        'CareerHelperAPI',
+        '/uploads/resume/resume-123'
+      )
+    );
 
     await waitFor(() =>
       expect(

@@ -13,7 +13,9 @@
       "Bash(git branch:*)",
       "Bash(git fetch:*)",
       "Bash(git pull:*)",
-      "Bash(gh:*)"
+      "Bash(gh:*)",
+      "Bash(grep -l '\"\"test\"\"' /Users/macbook1/work/Jack/CareerHelper/web/package.json /Users/macbook1/work/Jack/CareerHelper/backend/package.json /Users/macbook1/work/Jack/CareerHelper/mobile/package.json /Users/macbook1/work/Jack/CareerHelper/shared/package.json)",
+      "Bash(grep '\"\"test\"\"' /Users/macbook1/work/Jack/CareerHelper/backend/package.json /Users/macbook1/work/Jack/CareerHelper/shared/package.json)"
     ],
     "deny": [
       "Bash(git push --force*)",

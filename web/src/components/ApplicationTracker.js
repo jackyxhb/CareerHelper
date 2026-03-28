@@ -76,8 +76,12 @@ function ApplicationTracker({ user }) {
         <div className="card">
           <div className="empty-state">
             <div className="empty-state-icon">🔐</div>
-            <div className="empty-state-title">Sign in to track applications</div>
-            <p className="empty-state-text">Monitor your job applications and their statuses.</p>
+            <div className="empty-state-title">
+              Sign in to track applications
+            </div>
+            <p className="empty-state-text">
+              Monitor your job applications and their statuses.
+            </p>
           </div>
         </div>
       </div>
@@ -90,35 +94,87 @@ function ApplicationTracker({ user }) {
 
   return (
     <div className="page-container">
-      <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+      <div
+        className="page-header"
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+        }}
+      >
         <div>
           <h1 className="page-title">Application Tracker</h1>
-          <p className="page-subtitle">Managing your professional journey with precision and calm.</p>
+          <p className="page-subtitle">
+            Managing your professional journey with precision and calm.
+          </p>
         </div>
         <a href="/jobs" className="btn btn-primary">
           + New Application
         </a>
       </div>
 
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 'var(--space-8)' }}>
+      <div
+        className="stats-grid"
+        style={{
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          marginBottom: 'var(--space-8)',
+        }}
+      >
         <div className="stat-card">
-          <div className="stat-card-icon" style={{ backgroundColor: '#eef2ff' }}>📋</div>
-          <div className="stat-card-value" style={{ color: 'var(--color-primary)' }}>{applications.length}</div>
+          <div
+            className="stat-card-icon"
+            style={{ backgroundColor: '#eef2ff' }}
+          >
+            📋
+          </div>
+          <div
+            className="stat-card-value"
+            style={{ color: 'var(--color-primary)' }}
+          >
+            {applications.length}
+          </div>
           <div className="stat-card-label">Total Active</div>
         </div>
         <div className="stat-card">
-          <div className="stat-card-icon" style={{ backgroundColor: '#fef3c7' }}>🎤</div>
-          <div className="stat-card-value" style={{ color: 'var(--color-warning)' }}>{interviewCount}</div>
+          <div
+            className="stat-card-icon"
+            style={{ backgroundColor: '#fef3c7' }}
+          >
+            🎤
+          </div>
+          <div
+            className="stat-card-value"
+            style={{ color: 'var(--color-warning)' }}
+          >
+            {interviewCount}
+          </div>
           <div className="stat-card-label">Interviews</div>
         </div>
-        <div className="stat-card" style={{ background: 'linear-gradient(135deg, var(--color-gray-900) 0%, var(--color-primary-dark) 100%)', border: 'none' }}>
-          <div className="stat-card-icon" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>📈</div>
+        <div
+          className="stat-card"
+          style={{
+            background:
+              'linear-gradient(135deg, var(--color-gray-900) 0%, var(--color-primary-dark) 100%)',
+            border: 'none',
+          }}
+        >
+          <div
+            className="stat-card-icon"
+            style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
+          >
+            📈
+          </div>
           <div className="stat-card-value" style={{ color: '#fff' }}>
             {applications.length > 0
               ? `${Math.round((interviewCount / applications.length) * 100)}%`
               : '—'}
           </div>
-          <div className="stat-card-label" style={{ color: 'rgba(255,255,255,0.7)' }}>Interview Rate</div>
+          <div
+            className="stat-card-label"
+            style={{ color: 'rgba(255,255,255,0.7)' }}
+          >
+            Interview Rate
+          </div>
         </div>
       </div>
 
@@ -131,8 +187,22 @@ function ApplicationTracker({ user }) {
             const appliedDate = relativeDate(app.appliedAt || app.createdAt);
 
             return (
-              <div key={app.applicationId} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div
+                key={app.applicationId}
+                className="card"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 'var(--space-3)',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                  }}
+                >
                   <div
                     style={{
                       width: 40,
@@ -147,11 +217,15 @@ function ApplicationTracker({ user }) {
                   >
                     💼
                   </div>
-                  <span className={`badge ${config.badgeClass}`}>{config.label}</span>
+                  <span className={`badge ${config.badgeClass}`}>
+                    {config.label}
+                  </span>
                 </div>
 
                 <div>
-                  <div className="list-item-title" style={{ fontSize: '1rem' }}>{details.title}</div>
+                  <div className="list-item-title" style={{ fontSize: '1rem' }}>
+                    {details.title}
+                  </div>
                   {details.company && (
                     <div className="list-item-subtitle">
                       {details.company}
@@ -161,7 +235,9 @@ function ApplicationTracker({ user }) {
                 </div>
 
                 {appliedDate && (
-                  <div className="text-sm text-muted">🗓 Applied {appliedDate}</div>
+                  <div className="text-sm text-muted">
+                    🗓 Applied {appliedDate}
+                  </div>
                 )}
 
                 {app.notes && (
@@ -190,7 +266,9 @@ function ApplicationTracker({ user }) {
             <p className="empty-state-text">
               Start tracking your job applications to monitor your progress.
             </p>
-            <a href="/jobs" className="btn btn-primary">Find Jobs</a>
+            <a href="/jobs" className="btn btn-primary">
+              Find Jobs
+            </a>
           </div>
         </div>
       )}

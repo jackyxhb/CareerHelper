@@ -80,9 +80,13 @@ function JobSearch({ user }) {
 
       externalCacheRef.current.set(cacheKey, jobsFromSearch);
       setExternalJobs(jobsFromSearch);
-      logInfo('External job search completed', { items: jobsFromSearch.length });
+      logInfo('External job search completed', {
+        items: jobsFromSearch.length,
+      });
     } catch (error) {
-      setExternalError('External listings unavailable — showing saved jobs only.');
+      setExternalError(
+        'External listings unavailable — showing saved jobs only.'
+      );
       logError('Failed to fetch external jobs', error);
     } finally {
       setIsExternalLoading(false);
@@ -122,7 +126,10 @@ function JobSearch({ user }) {
 
   const handleApply = async job => {
     if (!userId) {
-      setFeedback({ type: 'error', message: 'You need to be signed in to apply.' });
+      setFeedback({
+        type: 'error',
+        message: 'You need to be signed in to apply.',
+      });
       return;
     }
 
@@ -150,10 +157,19 @@ function JobSearch({ user }) {
             ? `Application submitted for ${job.title}!`
             : `Saved ${job.title} to your tracker.`,
       });
-      logInfo('Application submitted from job search', { jobId: job.jobId, userId });
+      logInfo('Application submitted from job search', {
+        jobId: job.jobId,
+        userId,
+      });
     } catch (error) {
-      setFeedback({ type: 'error', message: 'Could not submit application. Please try again.' });
-      logError('Failed to submit application from job search', error, { jobId: job.jobId, userId });
+      setFeedback({
+        type: 'error',
+        message: 'Could not submit application. Please try again.',
+      });
+      logError('Failed to submit application from job search', error, {
+        jobId: job.jobId,
+        userId,
+      });
     } finally {
       setSubmittingJobId(null);
     }
@@ -193,12 +209,16 @@ function JobSearch({ user }) {
       <div className="page-header">
         <h1 className="page-title">Discover Your Future.</h1>
         <p className="page-subtitle">
-          Browse thousands of curated opportunities with our intelligent matching engine.
+          Browse thousands of curated opportunities with our intelligent
+          matching engine.
         </p>
       </div>
 
       <div className="card mb-6">
-        <div className="flex gap-4" style={{ flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div
+          className="flex gap-4"
+          style={{ flexWrap: 'wrap', alignItems: 'flex-end' }}
+        >
           <div className="form-group" style={{ flex: 2, marginBottom: 0 }}>
             <label className="form-label">Job Title or Keyword</label>
             <input
@@ -233,7 +253,9 @@ function JobSearch({ user }) {
       </div>
 
       {feedback && (
-        <div className={`alert alert-${feedback.type} mb-6`}>{feedback.message}</div>
+        <div className={`alert alert-${feedback.type} mb-6`}>
+          {feedback.message}
+        </div>
       )}
 
       {isExternalLoading && (
@@ -253,14 +275,27 @@ function JobSearch({ user }) {
         <>
           <div className="stats-grid" style={{ marginBottom: '1rem' }}>
             <div className="stat-card">
-              <div className="stat-card-icon" style={{ backgroundColor: '#eef2ff' }}>📋</div>
-              <div className="stat-card-value" style={{ color: 'var(--color-primary)' }}>
+              <div
+                className="stat-card-icon"
+                style={{ backgroundColor: '#eef2ff' }}
+              >
+                📋
+              </div>
+              <div
+                className="stat-card-value"
+                style={{ color: 'var(--color-primary)' }}
+              >
                 {filteredInternalJobs.length}
               </div>
               <div className="stat-card-label">Saved Jobs</div>
             </div>
             <div className="stat-card">
-              <div className="stat-card-icon" style={{ backgroundColor: '#dbeafe' }}>🌐</div>
+              <div
+                className="stat-card-icon"
+                style={{ backgroundColor: '#dbeafe' }}
+              >
+                🌐
+              </div>
               <div className="stat-card-value" style={{ color: '#3b82f6' }}>
                 {sortedExternalJobs.length}
               </div>
@@ -269,7 +304,8 @@ function JobSearch({ user }) {
           </div>
           {locationTerm.trim() && (
             <p className="text-sm text-muted mb-4">
-              Results sorted by relevance to &ldquo;{locationTerm.trim()}&rdquo; — may include remote positions and nearby areas.
+              Results sorted by relevance to &ldquo;{locationTerm.trim()}&rdquo;
+              — may include remote positions and nearby areas.
             </p>
           )}
         </>
@@ -280,23 +316,42 @@ function JobSearch({ user }) {
           {combinedJobs.map(job => (
             <div key={job.jobId} className="card">
               <div className="card-header">
-                <h3 className="card-title" style={{ margin: 0 }}>{job.title}</h3>
-                <span className={`badge badge-${job.source === 'Internal' ? 'primary' : 'neutral'}`}>
+                <h3 className="card-title" style={{ margin: 0 }}>
+                  {job.title}
+                </h3>
+                <span
+                  className={`badge badge-${job.source === 'Internal' ? 'primary' : 'neutral'}`}
+                >
                   {job.source || 'Internal'}
                 </span>
               </div>
 
               <div className="mt-4">
-                <p style={{ margin: '0 0 0.5rem', color: 'var(--color-text-secondary)' }}>
+                <p
+                  style={{
+                    margin: '0 0 0.5rem',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
                   🏢 {job.company}
                 </p>
                 {job.location && (
-                  <p style={{ margin: '0 0 0.5rem', color: 'var(--color-text-secondary)' }}>
+                  <p
+                    style={{
+                      margin: '0 0 0.5rem',
+                      color: 'var(--color-text-secondary)',
+                    }}
+                  >
                     📍 {job.location}
                   </p>
                 )}
                 {job.salary && (
-                  <p style={{ margin: '0 0 0.5rem', color: 'var(--color-success)' }}>
+                  <p
+                    style={{
+                      margin: '0 0 0.5rem',
+                      color: 'var(--color-success)',
+                    }}
+                  >
                     💰 {job.salary}
                   </p>
                 )}

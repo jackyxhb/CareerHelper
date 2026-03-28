@@ -1,8 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import {
-  DynamoDBDocumentClient,
-  QueryCommand,
-} from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import Logger from '../utils/logger';
 import { ErrorHandler } from '../utils/errorHandler';
 import { APIGatewayProxyEvent } from 'aws-lambda';

@@ -43,10 +43,7 @@ function JobSearchScreen() {
         {item.company} - {item.location}
       </Text>
       <Text>{item.description}</Text>
-      <Button
-        title="Apply"
-        onPress={() => handleApply(item)}
-      />
+      <Button title="Apply" onPress={() => handleApply(item)} />
     </View>
   );
 
@@ -79,7 +76,9 @@ function JobSearchScreen() {
         Job Search
       </Text>
       {feedback && (
-        <Text style={{ textAlign: 'center', marginBottom: 10 }}>{feedback}</Text>
+        <Text style={{ textAlign: 'center', marginBottom: 10 }}>
+          {feedback}
+        </Text>
       )}
       <FlatList
         data={jobs}

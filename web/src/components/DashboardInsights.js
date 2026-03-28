@@ -59,10 +59,7 @@ function DashboardInsights({ analytics, isLoading, error }) {
       averageApplicationsPerUser = 0,
       averageExperiencesPerUser = 0,
     } = {},
-    experienceGaps: {
-      usersWithGaps = 0,
-      averageGapMonths = 0,
-    } = {},
+    experienceGaps: { usersWithGaps = 0, averageGapMonths = 0 } = {},
   } = analytics;
 
   return (
@@ -88,12 +85,16 @@ function DashboardInsights({ analytics, isLoading, error }) {
         </div>
         <div className="dashboard-card">
           <span className="dashboard-card-title">Avg Apps / User</span>
-          <span className="dashboard-card-value">{averageApplicationsPerUser}</span>
+          <span className="dashboard-card-value">
+            {averageApplicationsPerUser}
+          </span>
           <span className="dashboard-card-caption">Rolling portfolio size</span>
         </div>
         <div className="dashboard-card">
           <span className="dashboard-card-title">Avg Experiences / User</span>
-          <span className="dashboard-card-value">{averageExperiencesPerUser}</span>
+          <span className="dashboard-card-value">
+            {averageExperiencesPerUser}
+          </span>
           <span className="dashboard-card-caption">Resume depth indicator</span>
         </div>
         <div className="dashboard-card">

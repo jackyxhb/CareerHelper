@@ -1,9 +1,6 @@
 const { expect } = require('chai');
 const { mockClient } = require('aws-sdk-client-mock');
-const {
-  DynamoDBDocumentClient,
-  PutCommand,
-} = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 
 const createJob = require('../functions/createJob');
 

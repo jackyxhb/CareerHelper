@@ -115,7 +115,8 @@ function Dashboard({ user, profile }) {
           👋
         </h1>
         <p className="page-subtitle">
-          Your professional narrative is evolving — here&apos;s your current career trajectory.
+          Your professional narrative is evolving — here&apos;s your current
+          career trajectory.
         </p>
       </div>
 
@@ -128,7 +129,9 @@ function Dashboard({ user, profile }) {
             >
               {stat.icon}
             </div>
-            <div className="stat-card-value" style={{ color: stat.color }}>{stat.value}</div>
+            <div className="stat-card-value" style={{ color: stat.color }}>
+              {stat.value}
+            </div>
             <div className="stat-card-label">{stat.label}</div>
           </div>
         ))}

@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  NavLink,
+} from 'react-router-dom';
 import { Amplify, API, Auth } from 'aws-amplify';
 import { Authenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
@@ -159,12 +164,43 @@ function App({ user, signOut }) {
             </button>
           </div>
           <nav>
-            <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Dashboard</NavLink>
-            <NavLink to="/jobs" className={({ isActive }) => isActive ? 'active' : ''}>Jobs</NavLink>
-            <NavLink to="/experiences" className={({ isActive }) => isActive ? 'active' : ''}>Experiences</NavLink>
-            <NavLink to="/applications" className={({ isActive }) => isActive ? 'active' : ''}>Applications</NavLink>
-            <NavLink to="/resume-tailor" className={({ isActive }) => isActive ? 'active' : ''}>AI Resume Tailor</NavLink>
-            <NavLink to="/resumes" className={({ isActive }) => isActive ? 'active' : ''}>Resumes</NavLink>
+            <NavLink
+              to="/"
+              end
+              className={({ isActive }) => (isActive ? 'active' : '')}
+            >
+              Dashboard
+            </NavLink>
+            <NavLink
+              to="/jobs"
+              className={({ isActive }) => (isActive ? 'active' : '')}
+            >
+              Jobs
+            </NavLink>
+            <NavLink
+              to="/experiences"
+              className={({ isActive }) => (isActive ? 'active' : '')}
+            >
+              Experiences
+            </NavLink>
+            <NavLink
+              to="/applications"
+              className={({ isActive }) => (isActive ? 'active' : '')}
+            >
+              Applications
+            </NavLink>
+            <NavLink
+              to="/resume-tailor"
+              className={({ isActive }) => (isActive ? 'active' : '')}
+            >
+              AI Resume Tailor
+            </NavLink>
+            <NavLink
+              to="/resumes"
+              className={({ isActive }) => (isActive ? 'active' : '')}
+            >
+              Resumes
+            </NavLink>
           </nav>
         </header>
         <main className="App-main">

@@ -2,10 +2,7 @@ import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import DynamoDBUtil from '../utils/dynamodb';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { RequestHandler } from '../utils/requestHandler';
-import {
-  ErrorHandler,
-  UnauthorizedError,
-} from '../utils/errorHandler';
+import { ErrorHandler, UnauthorizedError } from '../utils/errorHandler';
 import Logger from '../utils/logger';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 
@@ -32,71 +29,73 @@ function extractUserId(event: APIGatewayProxyEvent | any): string | null {
   );
 }
 
-export const handler = requestHandler.createResponse(async (event: APIGatewayProxyEvent) => {
-  const userId = extractUserId(event);
+export const handler = requestHandler.createResponse(
+  async (event: APIGatewayProxyEvent) => {
+    const userId = extractUserId(event);
 
-  if (!userId) {
-    throw new UnauthorizedError('Authentication required to view resumes');
-  }
-
-  const logger = new Logger({ component: 'getResumes', userId });
-
-  const items = await resumesTable.queryItems({
-    KeyConditionExpression: 'userId = :userId',
-    ExpressionAttributeValues: {
-      ':userId': userId,
-    },
-  });
-
-  const responseItems = [];
-
-  for (const item of items) {
-    try {
-      const downloadUrl = await getSignedUrl(
-        s3Client,
-        new GetObjectCommand({
-          Bucket: uploadsBucket,
-          Key: item.objectKey,
-        }),
-        { expiresIn: 300 }
-      );
-
-      responseItems.push({
-        resumeId: item.resumeId,
-        fileName: item.fileName,
-        contentType: item.contentType,
-        objectKey: item.objectKey,
-        status: item.status,
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt,
-        downloadUrl,
-      });
-    } catch (error: any) {
-      logger.warn(
-        'Failed to generate resume download URL',
-        {
-          resumeId: item.resumeId,
-          objectKey: item.objectKey,
-        },
-        error
-      );
-
-      responseItems.push({
-        resumeId: item.resumeId,
-        fileName: item.fileName,
-        contentType: item.contentType,
-        objectKey: item.objectKey,
-        status: 'MISSING_ASSET',
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt,
-        downloadUrl: null,
-      });
+    if (!userId) {
+      throw new UnauthorizedError('Authentication required to view resumes');
     }
+
+    const logger = new Logger({ component: 'getResumes', userId });
+
+    const items = await resumesTable.queryItems({
+      KeyConditionExpression: 'userId = :userId',
+      ExpressionAttributeValues: {
+        ':userId': userId,
+      },
+    });
+
+    const responseItems = [];
+
+    for (const item of items) {
+      try {
+        const downloadUrl = await getSignedUrl(
+          s3Client,
+          new GetObjectCommand({
+            Bucket: uploadsBucket,
+            Key: item.objectKey,
+          }),
+          { expiresIn: 300 }
+        );
+
+        responseItems.push({
+          resumeId: item.resumeId,
+          fileName: item.fileName,
+          contentType: item.contentType,
+          objectKey: item.objectKey,
+          status: item.status,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+          downloadUrl,
+        });
+      } catch (error: any) {
+        logger.warn(
+          'Failed to generate resume download URL',
+          {
+            resumeId: item.resumeId,
+            objectKey: item.objectKey,
+          },
+          error
+        );
+
+        responseItems.push({
+          resumeId: item.resumeId,
+          fileName: item.fileName,
+          contentType: item.contentType,
+          objectKey: item.objectKey,
+          status: 'MISSING_ASSET',
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+          downloadUrl: null,
+        });
+      }
+    }
+
+    logger.info('Fetched resume metadata', {
+      count: responseItems.length,
+    });
+
+    return ErrorHandler.createSuccessResponse({ resumes: responseItems });
   }
-
-  logger.info('Fetched resume metadata', {
-    count: responseItems.length,
-  });
-
-  return ErrorHandler.createSuccessResponse({ resumes: responseItems });
-});
+);

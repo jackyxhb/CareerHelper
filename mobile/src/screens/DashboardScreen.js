@@ -25,21 +25,28 @@ function DashboardScreen({ navigation }) {
   return (
     <View style={{ flex: 1 }}>
       <SyncStatusBanner />
-      <View style={{ flex: 1, padding: 20, justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          padding: 20,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <Text>CareerHelper Dashboard</Text>
         {user && <Text>Welcome, {user.attributes.email}!</Text>}
-      <Button
-        title="Search Jobs"
-        onPress={() => navigation.navigate('JobSearch')}
-      />
-      <Button
-        title="Manage Experience"
-        onPress={() => navigation.navigate('Experience')}
-      />
-      <Button
-        title="Track Applications"
-        onPress={() => navigation.navigate('Application')}
-      />
+        <Button
+          title="Search Jobs"
+          onPress={() => navigation.navigate('JobSearch')}
+        />
+        <Button
+          title="Manage Experience"
+          onPress={() => navigation.navigate('Experience')}
+        />
+        <Button
+          title="Track Applications"
+          onPress={() => navigation.navigate('Application')}
+        />
       </View>
     </View>
   );

@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { testData } from '../fixtures/testData';
 
 test.describe('Job Search', () => {
   test.beforeEach(async ({ page }) => {

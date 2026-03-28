@@ -64,8 +64,12 @@ export async function syncJobsFromApi() {
 export async function syncExperiencesFromApi(userId) {
   try {
     const experiences = await API.get(API_NAME, `/experiences/${userId}`);
-    const existing = await DataStore.query(Experience, e => e.userId('eq', userId));
-    const existingMap = new Map(existing.map(item => [item.experienceId, item]));
+    const existing = await DataStore.query(Experience, e =>
+      e.userId('eq', userId)
+    );
+    const existingMap = new Map(
+      existing.map(item => [item.experienceId, item])
+    );
     const incomingIds = new Set();
 
     await Promise.all(
@@ -113,8 +117,12 @@ export async function syncExperiencesFromApi(userId) {
 export async function syncApplicationsFromApi(userId) {
   try {
     const applications = await API.get(API_NAME, `/applications/${userId}`);
-    const existing = await DataStore.query(Application, a => a.userId('eq', userId));
-    const existingMap = new Map(existing.map(item => [item.applicationId, item]));
+    const existing = await DataStore.query(Application, a =>
+      a.userId('eq', userId)
+    );
+    const existingMap = new Map(
+      existing.map(item => [item.applicationId, item])
+    );
     const incomingIds = new Set();
 
     await Promise.all(
@@ -130,7 +138,8 @@ export async function syncApplicationsFromApi(userId) {
               updated.notes = item.notes ?? '';
               updated.jobTitle = item.jobTitle ?? record.jobTitle ?? null;
               updated.jobCompany = item.jobCompany ?? record.jobCompany ?? null;
-              updated.jobLocation = item.jobLocation ?? record.jobLocation ?? null;
+              updated.jobLocation =
+                item.jobLocation ?? record.jobLocation ?? null;
               updated.jobSource = item.jobSource ?? record.jobSource ?? null;
               updated.pendingSync = false;
               updated.lastSyncedAt = new Date().toISOString();

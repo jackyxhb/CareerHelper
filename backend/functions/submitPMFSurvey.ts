@@ -106,7 +106,7 @@ function handleSubmit(
   });
 }
 
-function handleGetStats(requestId: string): ApiErrorResponse {
+function handleGetStats(_requestId?: string): ApiErrorResponse {
   return ErrorHandler.createSuccessResponse({
     responseCount: 0,
     averageScore: 0,

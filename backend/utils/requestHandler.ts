@@ -1,6 +1,10 @@
 import { ValidationError } from './errorHandler';
 import Logger from './logger';
-import { ApiErrorResponse, ApiSuccessResponse, ErrorHandler } from './errorHandler';
+import {
+  ApiErrorResponse,
+  ApiSuccessResponse,
+  ErrorHandler,
+} from './errorHandler';
 
 export interface RequestHandlerOptions {
   requestId?: string;
@@ -16,7 +20,7 @@ export interface ValidationRule {
   pattern?: RegExp;
   minItems?: number;
   maxItems?: number;
-  validate?: (value: any) => string | null | undefined;
+  validate?: (_value: any) => string | null | undefined;
 }
 
 export interface ValidationSchema {
@@ -80,7 +84,10 @@ export class RequestHandler {
   /**
    * Extract and validate path parameters
    */
-  parsePathParameters(event: any, requiredParams: string[] = []): Record<string, string> {
+  parsePathParameters(
+    event: any,
+    requiredParams: string[] = []
+  ): Record<string, string> {
     const params = event.pathParameters || {};
 
     for (const param of requiredParams) {
@@ -100,7 +107,10 @@ export class RequestHandler {
   /**
    * Extract and validate query parameters
    */
-  parseQueryParameters(event: any, validators: Record<string, (val: string) => any> = {}): Record<string, any> {
+  parseQueryParameters(
+    event: any,
+    validators: Record<string, (_val: string) => any> = {}
+  ): Record<string, any> {
     const params = event.queryStringParameters || {};
 
     const validated: Record<string, any> = {};
@@ -235,15 +245,18 @@ export class RequestHandler {
 
   /**
    * Create standardized response wrapper
-   * 
+   *
    * @param successHandler Function to execute
    * @param errorHandler Optional custom error handler
    */
   createResponse(
-    successHandler: (event: any, context: any) => Promise<ApiSuccessResponse>,
-    errorHandler: ((error: any, context: any) => ApiErrorResponse) | null = null
+    successHandler: (_event: any, _context: any) => Promise<ApiSuccessResponse>,
+    errorHandler: ((_error: any, _ctx: any) => ApiErrorResponse) | null = null
   ) {
-    return async (event: any, context: any): Promise<ApiSuccessResponse | ApiErrorResponse> => {
+    return async (
+      event: any,
+      context: any
+    ): Promise<ApiSuccessResponse | ApiErrorResponse> => {
       const requestId = context?.awsRequestId || `test-${Date.now()}`;
       this.logger = new Logger({
         function: this.functionName,
@@ -260,9 +273,9 @@ export class RequestHandler {
         const errorResponse = errorHandler
           ? errorHandler(error, { requestId, function: this.functionName })
           : ErrorHandler.createErrorResponse(error, {
-            requestId,
-            function: this.functionName,
-          });
+              requestId,
+              function: this.functionName,
+            });
 
         this.logRequestComplete(errorResponse.statusCode);
         return errorResponse;

@@ -93,7 +93,8 @@ export default class DynamoDBUtil {
     if (this.circuitBreaker.state === 'OPEN') {
       if (
         this.circuitBreaker.lastFailureTime &&
-        now - this.circuitBreaker.lastFailureTime > this.circuitBreaker.recoveryTimeout
+        now - this.circuitBreaker.lastFailureTime >
+          this.circuitBreaker.recoveryTimeout
       ) {
         this.circuitBreaker.state = 'HALF_OPEN';
         this.logger.info('Circuit breaker moving to HALF_OPEN state');
@@ -134,7 +135,10 @@ export default class DynamoDBUtil {
   /**
    * Execute DynamoDB operation with circuit breaker and retry logic
    */
-  async executeCommand(command: any, operationName: string = 'unknown'): Promise<any> {
+  async executeCommand(
+    command: any,
+    operationName: string = 'unknown'
+  ): Promise<any> {
     this._checkCircuitBreaker();
 
     try {
@@ -178,7 +182,9 @@ export default class DynamoDBUtil {
   /**
    * Get item with circuit breaker protection
    */
-  async getItem(key: Record<string, any>): Promise<Record<string, any> | undefined> {
+  async getItem(
+    key: Record<string, any>
+  ): Promise<Record<string, any> | undefined> {
     const command = new GetCommand({
       TableName: this.tableName,
       Key: key,
@@ -203,7 +209,9 @@ export default class DynamoDBUtil {
   /**
    * Query items with circuit breaker protection
    */
-  async queryItems(params: Record<string, any>): Promise<Record<string, any>[]> {
+  async queryItems(
+    params: Record<string, any>
+  ): Promise<Record<string, any>[]> {
     const command = new QueryCommand({
       TableName: this.tableName,
       ...params,
@@ -216,7 +224,9 @@ export default class DynamoDBUtil {
   /**
    * Scan items with circuit breaker protection
    */
-  async scanItems(params: Record<string, any> = {}): Promise<Record<string, any>[]> {
+  async scanItems(
+    params: Record<string, any> = {}
+  ): Promise<Record<string, any>[]> {
     const command = new ScanCommand({
       TableName: this.tableName,
       ...params,

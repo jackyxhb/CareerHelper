@@ -6,9 +6,12 @@ import { APIGatewayProxyEvent } from 'aws-lambda';
 
 const requestHandler = new RequestHandler('searchJobs');
 
-const JSEARCH_API_URL = process.env.JOB_SEARCH_API_URL || 'https://jsearch.p.rapidapi.com/search';
-const JSEARCH_API_HOST = process.env.JOB_SEARCH_API_HOST || 'jsearch.p.rapidapi.com';
-const ADZUNA_API_URL = process.env.ADZUNA_API_URL || 'https://api.adzuna.com/v1/api/jobs';
+const JSEARCH_API_URL =
+  process.env.JOB_SEARCH_API_URL || 'https://jsearch.p.rapidapi.com/search';
+const JSEARCH_API_HOST =
+  process.env.JOB_SEARCH_API_HOST || 'jsearch.p.rapidapi.com';
+const ADZUNA_API_URL =
+  process.env.ADZUNA_API_URL || 'https://api.adzuna.com/v1/api/jobs';
 
 // ---------------------------------------------------------------------------
 // Normalizers
@@ -65,10 +68,31 @@ const normalizeAdzunaJob = (job: any): NormalizedJob => ({
 // Location detection — determines which Adzuna country endpoint to call
 // ---------------------------------------------------------------------------
 
-const NZ_KEYWORDS = ['auckland', 'wellington', 'christchurch', 'hamilton', 'tauranga',
-  'dunedin', 'napier', 'palmerston north', 'new zealand', ' nz'];
-const AU_KEYWORDS = ['sydney', 'melbourne', 'brisbane', 'perth', 'adelaide', 'canberra',
-  'hobart', 'darwin', 'gold coast', 'australia', ' au'];
+const NZ_KEYWORDS = [
+  'auckland',
+  'wellington',
+  'christchurch',
+  'hamilton',
+  'tauranga',
+  'dunedin',
+  'napier',
+  'palmerston north',
+  'new zealand',
+  ' nz',
+];
+const AU_KEYWORDS = [
+  'sydney',
+  'melbourne',
+  'brisbane',
+  'perth',
+  'adelaide',
+  'canberra',
+  'hobart',
+  'darwin',
+  'gold coast',
+  'australia',
+  ' au',
+];
 
 function detectAdzunaCountry(location: string): 'nz' | 'au' | null {
   const loc = ` ${location.toLowerCase()} `;
@@ -100,12 +124,19 @@ async function fetchJSearch(
 
   if (!response.ok) {
     const body = await response.text();
-    logger.error('JSearch request failed', { status: response.status, query, location, body });
+    logger.error('JSearch request failed', {
+      status: response.status,
+      query,
+      location,
+      body,
+    });
     throw new Error(`JSearch failed with status ${response.status}`);
   }
 
   const payload: any = await response.json();
-  return Array.isArray(payload?.data) ? payload.data.map(normalizeJSearchJob) : [];
+  return Array.isArray(payload?.data)
+    ? payload.data.map(normalizeJSearchJob)
+    : [];
 }
 
 async function fetchAdzuna(
@@ -128,12 +159,20 @@ async function fetchAdzuna(
 
   if (!response.ok) {
     const body = await response.text();
-    logger.error('Adzuna request failed', { status: response.status, country, query, location, body });
+    logger.error('Adzuna request failed', {
+      status: response.status,
+      country,
+      query,
+      location,
+      body,
+    });
     return []; // non-fatal — degrade gracefully
   }
 
   const payload: any = await response.json();
-  return Array.isArray(payload?.results) ? payload.results.map(normalizeAdzunaJob) : [];
+  return Array.isArray(payload?.results)
+    ? payload.results.map(normalizeAdzunaJob)
+    : [];
 }
 
 // Deduplicate by (normalised title + company) — prefer Adzuna over JSearch for NZ/AU
@@ -151,65 +190,95 @@ function deduplicateJobs(jobs: NormalizedJob[]): NormalizedJob[] {
 // Handler
 // ---------------------------------------------------------------------------
 
-export const handler = requestHandler.createResponse(async (event: APIGatewayProxyEvent) => {
-  const logger = new Logger({ component: 'searchJobs', requestId: event?.requestContext?.requestId });
+export const handler = requestHandler.createResponse(
+  async (event: APIGatewayProxyEvent) => {
+    const logger = new Logger({
+      component: 'searchJobs',
+      requestId: event?.requestContext?.requestId,
+    });
 
-  const queryParams = event.queryStringParameters || {};
-  const query = (queryParams.query || '').trim();
-  const location = (queryParams.location || '').trim();
+    const queryParams = event.queryStringParameters || {};
+    const query = (queryParams.query || '').trim();
+    const location = (queryParams.location || '').trim();
 
-  if (!query) {
-    throw new ValidationError('Query parameter "query" is required');
+    if (!query) {
+      throw new ValidationError('Query parameter "query" is required');
+    }
+
+    const jSearchKey = await secretsManager.getJobSearchApiKey();
+    if (!jSearchKey) {
+      throw new Error('Job search API key is not configured');
+    }
+
+    const adzunaCountry = location ? detectAdzunaCountry(location) : null;
+    const adzunaCreds = adzunaCountry
+      ? await secretsManager.getAdzunaCredentials()
+      : null;
+
+    logger.info('Starting job search', {
+      query,
+      location,
+      providers: [
+        'JSearch',
+        ...(adzunaCreds ? [`Adzuna/${adzunaCountry}`] : []),
+      ],
+    });
+
+    // Run JSearch + Adzuna in parallel
+    const [jSearchJobs, adzunaJobs] = await Promise.all([
+      fetchJSearch(query, location || undefined, jSearchKey, logger).catch(
+        err => {
+          logger.error('JSearch provider failed', { query, location }, err);
+          return [] as NormalizedJob[];
+        }
+      ),
+      adzunaCreds && adzunaCountry
+        ? fetchAdzuna(
+            adzunaCountry,
+            query,
+            location,
+            adzunaCreds.appId,
+            adzunaCreds.appKey,
+            logger
+          )
+        : Promise.resolve([] as NormalizedJob[]),
+    ]);
+
+    // Adzuna results first (better local accuracy), then JSearch — deduplicate
+    let jobs = deduplicateJobs([...adzunaJobs, ...jSearchJobs]);
+
+    // Fallback: if JSearch returned nothing with location filter, retry without it
+    if (jobs.length === 0 && location && !adzunaCreds) {
+      logger.info(
+        'Zero results with location filter, retrying JSearch with location in query',
+        { query, location }
+      );
+      const retryJobs = await fetchJSearch(
+        `${query} ${location}`,
+        undefined,
+        jSearchKey,
+        logger
+      ).catch(() => []);
+      jobs = deduplicateJobs(retryJobs);
+    }
+
+    logger.info('Job search completed', {
+      query,
+      location,
+      adzunaCount: adzunaJobs.length,
+      jSearchCount: jSearchJobs.length,
+      totalAfterDedup: jobs.length,
+    });
+
+    return ErrorHandler.createSuccessResponse({
+      providers: [
+        'JSearch',
+        ...(adzunaCreds ? [`Adzuna/${adzunaCountry}`] : []),
+      ],
+      query,
+      location,
+      jobs,
+      total: jobs.length,
+    });
   }
-
-  const jSearchKey = await secretsManager.getJobSearchApiKey();
-  if (!jSearchKey) {
-    throw new Error('Job search API key is not configured');
-  }
-
-  const adzunaCountry = location ? detectAdzunaCountry(location) : null;
-  const adzunaCreds = adzunaCountry ? await secretsManager.getAdzunaCredentials() : null;
-
-  logger.info('Starting job search', {
-    query,
-    location,
-    providers: ['JSearch', ...(adzunaCreds ? [`Adzuna/${adzunaCountry}`] : [])],
-  });
-
-  // Run JSearch + Adzuna in parallel
-  const [jSearchJobs, adzunaJobs] = await Promise.all([
-    fetchJSearch(query, location || undefined, jSearchKey, logger).catch(err => {
-      logger.error('JSearch provider failed', { query, location }, err);
-      return [] as NormalizedJob[];
-    }),
-    adzunaCreds && adzunaCountry
-      ? fetchAdzuna(adzunaCountry, query, location, adzunaCreds.appId, adzunaCreds.appKey, logger)
-      : Promise.resolve([] as NormalizedJob[]),
-  ]);
-
-  // Adzuna results first (better local accuracy), then JSearch — deduplicate
-  let jobs = deduplicateJobs([...adzunaJobs, ...jSearchJobs]);
-
-  // Fallback: if JSearch returned nothing with location filter, retry without it
-  if (jobs.length === 0 && location && !adzunaCreds) {
-    logger.info('Zero results with location filter, retrying JSearch with location in query', { query, location });
-    const retryJobs = await fetchJSearch(`${query} ${location}`, undefined, jSearchKey, logger).catch(() => []);
-    jobs = deduplicateJobs(retryJobs);
-  }
-
-  logger.info('Job search completed', {
-    query,
-    location,
-    adzunaCount: adzunaJobs.length,
-    jSearchCount: jSearchJobs.length,
-    totalAfterDedup: jobs.length,
-  });
-
-  return ErrorHandler.createSuccessResponse({
-    providers: ['JSearch', ...(adzunaCreds ? [`Adzuna/${adzunaCountry}`] : [])],
-    query,
-    location,
-    jobs,
-    total: jobs.length,
-  });
-});
+);

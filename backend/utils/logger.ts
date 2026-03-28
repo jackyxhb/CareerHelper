@@ -61,12 +61,20 @@ export default class Logger {
     console.log(JSON.stringify(logEntry));
   }
 
-  warn(message: string, data: Record<string, any> = {}, error: Error | null = null): void {
+  warn(
+    message: string,
+    data: Record<string, any> = {},
+    error: Error | null = null
+  ): void {
     const logEntry = this._formatLog('WARN', message, data, error);
     console.warn(JSON.stringify(logEntry));
   }
 
-  error(message: string, data: Record<string, any> = {}, error: Error | null = null): void {
+  error(
+    message: string,
+    data: Record<string, any> = {},
+    error: Error | null = null
+  ): void {
     const logEntry = this._formatLog('ERROR', message, data, error);
     console.error(JSON.stringify(logEntry));
   }

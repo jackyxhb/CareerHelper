@@ -108,4 +108,3 @@ class MobileAnalytics {
 
 const analytics = new MobileAnalytics();
 export default analytics;
-export { MOBILE_EVENTS };

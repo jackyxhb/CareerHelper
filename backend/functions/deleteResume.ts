@@ -33,45 +33,49 @@ function extractUserId(event: APIGatewayProxyEvent | any): string | null {
   );
 }
 
-export const handler = requestHandler.createResponse(async (event: APIGatewayProxyEvent) => {
-  const userId = extractUserId(event);
+export const handler = requestHandler.createResponse(
+  async (event: APIGatewayProxyEvent) => {
+    const userId = extractUserId(event);
 
-  if (!userId) {
-    throw new UnauthorizedError('Authentication required to delete resumes');
+    if (!userId) {
+      throw new UnauthorizedError('Authentication required to delete resumes');
+    }
+
+    const { resumeId } = requestHandler.parsePathParameters(event, [
+      'resumeId',
+    ]);
+
+    const logger = new Logger({ component: 'deleteResume', userId, resumeId });
+
+    const resumeItem = await resumesTable.getItem({ userId, resumeId });
+    if (!resumeItem) {
+      throw new NotFoundError('Resume not found for the current user');
+    }
+
+    await s3Client.send(
+      new DeleteObjectCommand({
+        Bucket: uploadsBucket,
+        Key: resumeItem.objectKey,
+      })
+    );
+
+    await resumesTable.deleteItem({ userId, resumeId });
+
+    const userProfile = await usersTable.getItem({ userId });
+    if (userProfile?.resumeKey === resumeItem.objectKey) {
+      await usersTable.updateItem({
+        Key: { userId },
+        UpdateExpression: 'REMOVE resumeKey SET updatedAt = :updatedAt',
+        ExpressionAttributeValues: {
+          ':updatedAt': new Date().toISOString(),
+        },
+      } as any);
+    }
+
+    logger.info('Deleted resume and metadata', {
+      objectKey: resumeItem.objectKey,
+    });
+
+    return ErrorHandler.createSuccessResponse({ success: true });
   }
-
-  const { resumeId } = requestHandler.parsePathParameters(event, ['resumeId']);
-
-  const logger = new Logger({ component: 'deleteResume', userId, resumeId });
-
-  const resumeItem = await resumesTable.getItem({ userId, resumeId });
-  if (!resumeItem) {
-    throw new NotFoundError('Resume not found for the current user');
-  }
-
-  await s3Client.send(
-    new DeleteObjectCommand({
-      Bucket: uploadsBucket,
-      Key: resumeItem.objectKey,
-    })
-  );
-
-  await resumesTable.deleteItem({ userId, resumeId });
-
-  const userProfile = await usersTable.getItem({ userId });
-  if (userProfile?.resumeKey === resumeItem.objectKey) {
-    await usersTable.updateItem({
-      Key: { userId },
-      UpdateExpression: 'REMOVE resumeKey SET updatedAt = :updatedAt',
-      ExpressionAttributeValues: {
-        ':updatedAt': new Date().toISOString(),
-      },
-    } as any);
-  }
-
-  logger.info('Deleted resume and metadata', {
-    objectKey: resumeItem.objectKey,
-  });
-
-  return ErrorHandler.createSuccessResponse({ success: true });
-});
+);

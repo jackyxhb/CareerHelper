@@ -55,15 +55,23 @@ async function scanTable(tableName: string): Promise<any[]> {
   return items;
 }
 
-function countApplicationsByStatus(applications: Application[]): Record<string, number> {
-  return applications.reduce((acc, app) => {
-    const key = (app.status || 'unknown').toLowerCase();
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+function countApplicationsByStatus(
+  applications: Application[]
+): Record<string, number> {
+  return applications.reduce(
+    (acc, app) => {
+      const key = (app.status || 'unknown').toLowerCase();
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 }
 
-function calculateRates(applicationsByStatus: Record<string, number>, totalApplications: number) {
+function calculateRates(
+  applicationsByStatus: Record<string, number>,
+  totalApplications: number
+) {
   if (!totalApplications) {
     return {
       interviewRate: 0,
@@ -75,24 +83,28 @@ function calculateRates(applicationsByStatus: Record<string, number>, totalAppli
     (applicationsByStatus.interviewing || 0) +
     (applicationsByStatus.interview || 0);
   const offerCount =
-    (applicationsByStatus.offered || 0) +
-    (applicationsByStatus.offer || 0);
+    (applicationsByStatus.offered || 0) + (applicationsByStatus.offer || 0);
 
   return {
-    interviewRate: Number(((interviewCount / totalApplications) * 100).toFixed(2)),
+    interviewRate: Number(
+      ((interviewCount / totalApplications) * 100).toFixed(2)
+    ),
     offerRate: Number(((offerCount / totalApplications) * 100).toFixed(2)),
   };
 }
 
 function calculateExperienceInsights(experiences: Experience[]) {
-  const byUser = experiences.reduce((acc, exp) => {
-    if (!exp.userId) {
+  const byUser = experiences.reduce(
+    (acc, exp) => {
+      if (!exp.userId) {
+        return acc;
+      }
+      acc[exp.userId] = acc[exp.userId] || [];
+      acc[exp.userId].push(exp);
       return acc;
-    }
-    acc[exp.userId] = acc[exp.userId] || [];
-    acc[exp.userId].push(exp);
-    return acc;
-  }, {} as Record<string, Experience[]>);
+    },
+    {} as Record<string, Experience[]>
+  );
 
   const users = Object.keys(byUser).length || 1;
   let usersWithGaps = 0;
@@ -101,7 +113,10 @@ function calculateExperienceInsights(experiences: Experience[]) {
   Object.values(byUser).forEach(userExperiences => {
     const sorted = userExperiences
       .filter(exp => exp.startDate)
-      .sort((a, b) => new Date(a.startDate!).getTime() - new Date(b.startDate!).getTime());
+      .sort(
+        (a, b) =>
+          new Date(a.startDate!).getTime() - new Date(b.startDate!).getTime()
+      );
 
     let hasGap = false;
 
@@ -130,7 +145,11 @@ function calculateExperienceInsights(experiences: Experience[]) {
   });
 
   const averageGaps = gapDurations.length
-    ? Number((gapDurations.reduce((sum, val) => sum + val, 0) / gapDurations.length).toFixed(2))
+    ? Number(
+        (
+          gapDurations.reduce((sum, val) => sum + val, 0) / gapDurations.length
+        ).toFixed(2)
+      )
     : 0;
 
   const averageExperiencesPerUser = Number(
