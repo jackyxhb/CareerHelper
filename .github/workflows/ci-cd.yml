@@ -35,8 +35,9 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '20'
-    - name: Install serverless
-      run: npm install -g serverless
+        cache: 'yarn'
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
     - name: Configure AWS
       uses: aws-actions/configure-aws-credentials@v2
       with:
@@ -44,7 +45,7 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
     - name: Deploy backend
-      run: cd backend && serverless deploy
+      run: yarn deploy:backend
 
   deploy-web:
     needs: test
@@ -56,8 +57,9 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '20'
-    - name: Install Amplify CLI
-      run: npm install -g @aws-amplify/cli
+        cache: 'yarn'
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
     - name: Configure AWS
       uses: aws-actions/configure-aws-credentials@v2
       with:
@@ -65,4 +67,4 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
     - name: Deploy web
-      run: cd web && amplify publish
+      run: yarn deploy:web
