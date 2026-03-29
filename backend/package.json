@@ -4,8 +4,8 @@
   "description": "Backend for CareerHelper",
   "main": "handler.js",
   "scripts": {
-    "test": "mocha -r ts-node/register test/**/*.test.js",
-    "test:coverage": "nyc mocha -r ts-node/register test/**/*.test.js",
+    "test": "mocha",
+    "test:coverage": "nyc mocha",
     "deploy": "serverless deploy",
     "start": "sls offline start --httpPort 3001",
     "install:db": "sls dynamodb install"

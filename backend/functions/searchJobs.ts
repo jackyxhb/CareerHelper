@@ -13,11 +13,62 @@ const JSEARCH_API_HOST =
 const ADZUNA_API_URL =
   process.env.ADZUNA_API_URL || 'https://api.adzuna.com/v1/api/jobs';
 
+// Max combined length for the location-embedded retry query
+const MAX_RETRY_QUERY_LENGTH = 200;
+
+// ---------------------------------------------------------------------------
+// External API response shapes (typed — avoids any in normalizers)
+// ---------------------------------------------------------------------------
+
+interface JSearchJobRaw {
+  job_id: string;
+  job_title: string;
+  employer_name?: string;
+  job_city?: string;
+  job_state?: string;
+  job_country?: string;
+  job_description?: string;
+  job_apply_link?: string;
+  employer_website?: string;
+  job_posted_at_datetime_utc?: string;
+  job_salary_currency?: string;
+  job_min_salary?: number;
+  job_max_salary?: number;
+}
+
+interface JSearchResponse {
+  data?: JSearchJobRaw[];
+}
+
+interface AdzunaCompany {
+  display_name?: string;
+}
+
+interface AdzunaLocation {
+  display_name?: string;
+}
+
+interface AdzunaJobRaw {
+  id: string;
+  title: string;
+  company?: AdzunaCompany;
+  location?: AdzunaLocation;
+  description?: string;
+  redirect_url?: string;
+  created?: string;
+  salary_min?: number;
+  salary_max?: number;
+}
+
+interface AdzunaResponse {
+  results?: AdzunaJobRaw[];
+}
+
 // ---------------------------------------------------------------------------
 // Normalizers
 // ---------------------------------------------------------------------------
 
-interface NormalizedJob {
+export interface NormalizedJob {
   jobId: string;
   title: string;
   company: string;
@@ -29,12 +80,12 @@ interface NormalizedJob {
   source: string;
 }
 
-const normalizeJSearchLocation = (job: any) => {
+const normalizeJSearchLocation = (job: JSearchJobRaw): string => {
   const parts = [job.job_city, job.job_state, job.job_country].filter(Boolean);
   return parts.join(', ');
 };
 
-const normalizeJSearchJob = (job: any): NormalizedJob => ({
+export const normalizeJSearchJob = (job: JSearchJobRaw): NormalizedJob => ({
   jobId: `jsearch-${job.job_id}`,
   title: job.job_title,
   company: job.employer_name || 'Unknown Employer',
@@ -44,12 +95,12 @@ const normalizeJSearchJob = (job: any): NormalizedJob => ({
   publishedAt: job.job_posted_at_datetime_utc || null,
   salary:
     job.job_salary_currency && (job.job_min_salary || job.job_max_salary)
-      ? `${job.job_salary_currency} ${job.job_min_salary ?? ''}–${job.job_max_salary ?? ''}`.trim()
+      ? `${job.job_salary_currency} ${job.job_min_salary ?? ""}\u2013${job.job_max_salary ?? ""}`.trim()
       : null,
   source: 'JSearch',
 });
 
-const normalizeAdzunaJob = (job: any): NormalizedJob => ({
+export const normalizeAdzunaJob = (job: AdzunaJobRaw): NormalizedJob => ({
   jobId: `adzuna-${job.id}`,
   title: job.title,
   company: job.company?.display_name || 'Unknown Employer',
@@ -59,7 +110,7 @@ const normalizeAdzunaJob = (job: any): NormalizedJob => ({
   publishedAt: job.created || null,
   salary:
     job.salary_min || job.salary_max
-      ? `$${Math.round(job.salary_min ?? 0).toLocaleString()}–$${Math.round(job.salary_max ?? 0).toLocaleString()}`
+      ? `$${Math.round(job.salary_min ?? 0).toLocaleString()}\u2013$${Math.round(job.salary_max ?? 0).toLocaleString()}`
       : null,
   source: 'Seek/Adzuna',
 });
@@ -94,7 +145,7 @@ const AU_KEYWORDS = [
   ' au',
 ];
 
-function detectAdzunaCountry(location: string): 'nz' | 'au' | null {
+export function detectAdzunaCountry(location: string): 'nz' | 'au' | null {
   const loc = ` ${location.toLowerCase()} `;
   if (NZ_KEYWORDS.some(k => loc.includes(k))) return 'nz';
   if (AU_KEYWORDS.some(k => loc.includes(k))) return 'au';
@@ -105,7 +156,7 @@ function detectAdzunaCountry(location: string): 'nz' | 'au' | null {
 // Fetch helpers
 // ---------------------------------------------------------------------------
 
-async function fetchJSearch(
+export async function fetchJSearch(
   query: string,
   location: string | undefined,
   apiKey: string,
@@ -133,13 +184,11 @@ async function fetchJSearch(
     throw new Error(`JSearch failed with status ${response.status}`);
   }
 
-  const payload: any = await response.json();
-  return Array.isArray(payload?.data)
-    ? payload.data.map(normalizeJSearchJob)
-    : [];
+  const payload = (await response.json()) as JSearchResponse;
+  return Array.isArray(payload?.data) ? payload.data.map(normalizeJSearchJob) : [];
 }
 
-async function fetchAdzuna(
+export async function fetchAdzuna(
   country: 'nz' | 'au',
   query: string,
   location: string,
@@ -169,14 +218,20 @@ async function fetchAdzuna(
     return []; // non-fatal — degrade gracefully
   }
 
-  const payload: any = await response.json();
+  const payload = (await response.json()) as AdzunaResponse;
   return Array.isArray(payload?.results)
     ? payload.results.map(normalizeAdzunaJob)
     : [];
 }
 
+// Strip characters that could cause unexpected API behaviour when location is
+// embedded directly in the query string for the JSearch fallback retry.
+export function sanitizeForRetry(s: string): string {
+  return s.replace(/[^\w\s,.-]/g, '').trim();
+}
+
 // Deduplicate by (normalised title + company) — prefer Adzuna over JSearch for NZ/AU
-function deduplicateJobs(jobs: NormalizedJob[]): NormalizedJob[] {
+export function deduplicateJobs(jobs: NormalizedJob[]): NormalizedJob[] {
   const seen = new Set<string>();
   return jobs.filter(job => {
     const key = `${job.title.toLowerCase().trim()}|${job.company.toLowerCase().trim()}`;
@@ -218,20 +273,17 @@ export const handler = requestHandler.createResponse(
     logger.info('Starting job search', {
       query,
       location,
-      providers: [
-        'JSearch',
-        ...(adzunaCreds ? [`Adzuna/${adzunaCountry}`] : []),
-      ],
+      providers: ['JSearch', ...(adzunaCreds ? [`Adzuna/${adzunaCountry}`] : [])],
     });
 
-    // Run JSearch + Adzuna in parallel
+    // Run JSearch + Adzuna in parallel; track provider failures for response metadata
+    let jSearchFailed = false;
     const [jSearchJobs, adzunaJobs] = await Promise.all([
-      fetchJSearch(query, location || undefined, jSearchKey, logger).catch(
-        err => {
-          logger.error('JSearch provider failed', { query, location }, err);
-          return [] as NormalizedJob[];
-        }
-      ),
+      fetchJSearch(query, location || undefined, jSearchKey, logger).catch(err => {
+        jSearchFailed = true;
+        logger.error('JSearch provider failed', { query, location }, err);
+        return [] as NormalizedJob[];
+      }),
       adzunaCreds && adzunaCountry
         ? fetchAdzuna(
             adzunaCountry,
@@ -253,14 +305,20 @@ export const handler = requestHandler.createResponse(
         'Zero results with location filter, retrying JSearch with location in query',
         { query, location }
       );
-      const retryJobs = await fetchJSearch(
-        `${query} ${location}`,
-        undefined,
-        jSearchKey,
-        logger
-      ).catch(() => []);
+      const retryQuery = `${sanitizeForRetry(query)} ${sanitizeForRetry(location)}`
+        .trim()
+        .slice(0, MAX_RETRY_QUERY_LENGTH);
+      const retryJobs = await fetchJSearch(retryQuery, undefined, jSearchKey, logger).catch(
+        () => []
+      );
       jobs = deduplicateJobs(retryJobs);
     }
+
+    // Surface a warning when results are empty due to provider failure
+    const providersWarning =
+      jobs.length === 0 && jSearchFailed
+        ? 'Job search providers are temporarily unavailable. Please try again.'
+        : undefined;
 
     logger.info('Job search completed', {
       query,
@@ -268,17 +326,16 @@ export const handler = requestHandler.createResponse(
       adzunaCount: adzunaJobs.length,
       jSearchCount: jSearchJobs.length,
       totalAfterDedup: jobs.length,
+      providersWarning: providersWarning ?? null,
     });
 
     return ErrorHandler.createSuccessResponse({
-      providers: [
-        'JSearch',
-        ...(adzunaCreds ? [`Adzuna/${adzunaCountry}`] : []),
-      ],
+      providers: ['JSearch', ...(adzunaCreds ? [`Adzuna/${adzunaCountry}`] : [])],
       query,
       location,
       jobs,
       total: jobs.length,
+      ...(providersWarning ? { providersWarning } : {}),
     });
   }
 );

@@ -127,8 +127,15 @@ export class SecretsManager {
         this.getSSMParameter(`/careerhelper/${stage}/adzuna-app-key`),
       ]);
       return appId && appKey ? { appId, appKey } : null;
-    } catch {
-      // Credentials not yet configured — Adzuna provider will be skipped.
+    } catch (error) {
+      // Distinguish expected ParameterNotFound from genuine config errors
+      const name = (error as NodeJS.ErrnoException & { name?: string })?.name ?? '';
+      const isAbsent = name === 'ParameterNotFound' || name === 'ResourceNotFoundException';
+      if (isAbsent) {
+        this.logger.info('Adzuna credentials not configured — provider will be skipped');
+      } else {
+        this.logger.warn('Failed to retrieve Adzuna credentials — provider will be skipped', {}, error as Error);
+      }
       return null;
     }
   }
