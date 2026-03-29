@@ -5,9 +5,7 @@ import {
   Route,
   NavLink,
 } from 'react-router-dom';
-import { Amplify, API, Auth } from 'aws-amplify';
-import { Authenticator } from '@aws-amplify/ui-react';
-import '@aws-amplify/ui-react/styles.css';
+import { Amplify, API, Auth, Hub } from 'aws-amplify';
 import config from './amplify-config.json';
 import Dashboard from './components/Dashboard';
 import JobSearch from './components/JobSearch';
@@ -19,7 +17,8 @@ import ResumeTailor from './components/ResumeTailor';
 import ProfileSettings from './components/ProfileSettings';
 import ErrorBoundary from './components/ErrorBoundary';
 import OnboardingFlow from './components/OnboardingFlow';
-import analytics, { AnalyticsEvent } from './utils/analytics';
+import AuthSignIn from './components/AuthSignIn';
+import analytics from './utils/analytics';
 import { logError, logInfo } from './utils/logger';
 
 Amplify.configure({
@@ -259,9 +258,74 @@ function App({ user, signOut }) {
 }
 
 export default function AppWrapper() {
-  return (
-    <Authenticator>
-      {({ user, signOut }) => <App user={user} signOut={signOut} />}
-    </Authenticator>
-  );
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const currentUser = await Auth.currentAuthenticatedUser();
+        setUser(currentUser);
+      } catch (err) {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkUser();
+
+    // Listen for auth state changes
+    const unsubscribe = Hub.listen('auth', ({ payload: { event } }) => {
+      if (event === 'signIn' || event === 'signUp') {
+        checkUser();
+      } else if (event === 'signOut') {
+        setUser(null);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="auth-container">
+        <div
+          style={{
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+          }}
+        >
+          <div className="loading-spinner" />
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthSignIn onAuthStateChange={() => checkUser()} />;
+  }
+
+  const handleSignOut = async () => {
+    try {
+      await Auth.signOut();
+      setUser(null);
+    } catch (err) {
+      logError('Sign out failed', err);
+    }
+  };
+
+  const checkUser = async () => {
+    try {
+      const currentUser = await Auth.currentAuthenticatedUser();
+      setUser(currentUser);
+    } catch (err) {
+      setUser(null);
+    }
+  };
+
+  return <App user={user} signOut={handleSignOut} />;
 }
