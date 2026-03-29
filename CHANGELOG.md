@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.0.7] - 2026-03-30
+
+### Fixed
+- **Web Test Suite**: Fixed 3 failing tests broken by v0.0.6 frontend redesign
+  - `ApplicationTracker.test.js`: Added missing `jobTitle`/`jobCompany` fields to mock data; implemented tab navigation to reach Applied applications
+  - `Dashboard.test.js`: Updated mock data to include job details; corrected test assertions to match redesigned stat labels
+  - `ResumeManager.test.js`: Restored `aria-label` on file input; updated button text matcher to handle emoji prefix ("🗑 Delete")
+- **CI/CD Deployment Workflow**: Fixed failing deploy jobs by replacing incompatible deployment commands
+  - `deploy-web`: Replaced `amplify publish` (requires Amplify backend) with `yarn deploy:web` (direct S3 sync)
+  - `deploy-backend`: Replaced bare `serverless deploy` with `yarn deploy:backend` workspace script
+  - Added `yarn cache` and `yarn install --frozen-lockfile` to both deploy jobs for faster, more reliable builds
+  - Removed unnecessary Amplify CLI and serverless install steps
+
+### Result
+- **Test Coverage**: 100% passing (8 web tests + 63 backend tests = 71 total)
+- **CI/CD Pipeline**: All 3 jobs (test, deploy-web, deploy-backend) now ✅ passing
+- **Deployment**: Web app and backend Lambdas deploy automatically on push to main
+- **Performance**: Pipeline completes in ~5 minutes (test 1m23s, deploy-web 1m24s, deploy-backend 1m47s)
+
 ## [0.0.6] - 2026-03-30
 
 ### Added

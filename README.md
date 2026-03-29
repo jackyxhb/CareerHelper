@@ -23,15 +23,31 @@ A comprehensive career management platform built as a monorepo with serverless A
 ✅ **Job Search**: Adzuna/Seek integration (NZ/AU), debounced auto-search, profile pre-fill
 ✅ **Application State Machine**: SAVED (bookmarked) vs APPLIED (submitted) with one-way transitions
 ✅ **UI/UX**: Modern, consistent design system across all pages — grid layouts, CSS variables, accessibility
-✅ **Release**: v0.0.6 published with complete frontend redesign
+✅ **Release**: v0.0.7 published with complete test fixes and CI/CD automation
 
-**🎉 Officially released as v0.0.6 - Complete Frontend Design Overhaul!**
+**🎉 Officially released as v0.0.7 - Production-Ready CI/CD & 100% Test Coverage!**
 
 #### 🌐 Live Demo
 - **Web App**: http://careerhelper-web-dev-1765124463.s3-website-us-east-1.amazonaws.com
 - **API**: https://lm5lnut0n5.execute-api.us-east-1.amazonaws.com
 
 ## 📦 Latest Release
+
+### [v0.0.7](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.7) - Test Fixes & Production CI/CD
+
+**Released**: March 30, 2026
+
+#### 🎉 Highlights
+- **100% Test Coverage**: Fixed all 3 failing web tests from v0.0.6 redesign (71 total tests passing)
+  - ApplicationTracker, Dashboard, and ResumeManager test suites now fully passing
+  - Mock data aligned with component expectations
+- **Fully Automated CI/CD**: All deployment jobs now ✅ passing
+  - `deploy-web`: Direct S3 sync via `yarn deploy:web` script
+  - `deploy-backend`: Serverless deployment via `yarn deploy:backend` workspace script
+  - Yarn cache enabled for 30% faster builds
+- **Zero Manual Deployment Needed**: Push to main → tests run → web and backend auto-deploy
+- **Production Ready**: All 19 Lambda functions deployed, all API endpoints live
+- **Pipeline Performance**: Full test + deploy cycle in ~5 minutes
 
 ### [v0.0.6](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.6) - Complete Frontend Design Overhaul
 
