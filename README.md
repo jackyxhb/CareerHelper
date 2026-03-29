@@ -10,20 +10,21 @@ A comprehensive career management platform built as a monorepo with serverless A
 
 ## 📊 Project Status
 
-✅ **Backend**: 17 Lambda functions covering users, jobs, experiences, applications, resumes, search, analytics
+✅ **Backend**: 19 Lambda functions covering users, jobs, experiences, applications, resumes, search, analytics, and application state management
 ✅ **Web App**: Full React application deployed to AWS S3 with Cognito auth
 ✅ **Mobile App**: React Native app with cross-platform support and offline sync
 ✅ **Infrastructure**: AWS CDK stack with DynamoDB, Cognito, S3 + configured CORS
-✅ **Testing**: 47 unit tests with AWS SDK v3 mocking (Mocha + Chai + aws-sdk-client-mock)
+✅ **Testing**: 63 unit tests with AWS SDK v3 mocking (Mocha + Chai + aws-sdk-client-mock)
 ✅ **CI/CD**: GitHub Actions workflows for automated deployment
 ✅ **Documentation**: API specs and development guidelines
 ✅ **Resume Uploads**: Cognito-protected signed URLs backed by DynamoDB metadata
 ✅ **Error Handling**: Enterprise-grade resilience with circuit breakers and structured logging
 ✅ **Profile Settings**: Preferred name, location, and job role preferences with persistent storage
 ✅ **Job Search**: Adzuna/Seek integration (NZ/AU), debounced auto-search, profile pre-fill
-✅ **Release**: v0.0.4 published and production-ready
+✅ **Application State Machine**: SAVED (bookmarked) vs APPLIED (submitted) with one-way transitions
+✅ **Release**: v0.0.5 published and production-ready
 
-**🎉 Officially released as v0.0.4 - Ready for production deployment!**
+**🎉 Officially released as v0.0.5 - SAVED/APPLIED job state system live!**
 
 #### 🌐 Live Demo
 - **Web App**: http://careerhelper-web-dev-1765124463.s3-website-us-east-1.amazonaws.com
@@ -31,22 +32,24 @@ A comprehensive career management platform built as a monorepo with serverless A
 
 ## 📦 Latest Release
 
-### [v0.0.4](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.4) - User Profile & Job Search Pre-fill
+### [v0.0.5](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.5) - SAVED vs APPLIED Job State Distinction
 
-**Released**: March 29, 2026
+**Released**: March 30, 2026
 
 #### 🎉 Highlights
-- User Profile Settings page — edit preferred name, city/country (linked dropdowns), and job role preferences (tag-style input)
-- `PUT /users/{userId}` Lambda persists profile changes to DynamoDB; profile pre-fills Job Search automatically
-- `searchJobs` fully typed with `sanitizeForRetry`, `providersWarning`, and 23 new tests (47 total)
-- Fixed: `updateUser` Lambda had never been deployed — profile saves now work correctly
+- **Two distinct job states**: SAVED (bookmarked for later) vs APPLIED (submitted applications)
+- **Application state machine**: SAVED→APPLIED one-way transition with guard against reverting from terminal statuses
+- **Tabs in Application Tracker**: Split Saved and Applied jobs; Saved jobs show Apply + Remove; Applied show Delete with confirmation
+- **Inline apply workflow**: Modal overlay with optional cover letter notes field; auto-transitions to Applied tab on submit
+- **Job state awareness in search**: Per-card badges show ✓ Applied (read-only), ✓ Saved (with Unsave), or Save button based on status Map
+- New Lambdas: `updateApplication` (PUT, state transitions) and `deleteApplication` (DELETE); 11 new tests (63 total)
 
 #### 📥 Installation Options
 ```bash
 # Install latest release
 git clone https://github.com/jackyxhb/CareerHelper.git
 cd CareerHelper
-git checkout v0.0.4
+git checkout v0.0.5
 
 # Or download from releases
 # https://github.com/jackyxhb/CareerHelper/releases/latest
@@ -59,7 +62,9 @@ git checkout v0.0.4
 - **Adzuna/Seek Integration**: NZ and AU job coverage via Adzuna API (aggregates Seek); configurable via SSM
 - **Profile Pre-fill**: Job search query and location automatically seeded from saved profile preferences
 - **Location Relevance Sorting**: Exact-location matches ranked first, remote second
-- **Save & Track**: Bookmark interesting positions and monitor application status
+- **Save & Review**: Bookmark (SAVED state) interesting positions for later review without commitment
+- **Apply Workflow**: Click to apply from search or Saved tab; optional cover letter entry with inline modal
+- **Job Deduplication**: Natural key (jobTitle|jobCompany|jobLocation) prevents duplicate saves across searches
 - **Resume Handoff**: Issue pre-signed upload links tied to each job application
 
 ### **Experience Management**
@@ -69,9 +74,12 @@ git checkout v0.0.4
 - **Resume Generation**: Auto-generate professional resumes from your data
 
 ### **Application Tracking**
-- **Comprehensive Tracking**: Monitor all applications with status updates
+- **Dual State System**: SAVED (bookmarked jobs) vs APPLIED (submitted applications) with one-way state transitions
+- **Saved Jobs Tab**: Bookmark interesting positions; click Apply to start formal application with optional cover letter
+- **Applied Jobs Tab**: Track submitted applications with status (Applied, Interviewing, Offered, Rejected, Withdrawn); delete with confirmation
+- **Inline Apply Workflow**: Position-fixed modal for cover letter entry; seamless transition from Saved to Applied state
+- **Job State Awareness**: Search results show ✓ Applied (read-only badge), ✓ Saved (with Unsave button), or Save button per job
 - **Interview Scheduling**: Set reminders for interviews and follow-ups
-- **Cover Letter Management**: Store and reuse customized cover letters
 - **Progress Analytics**: Visualize application success rates and trends
 - **Job Snapshot History**: Each saved application retains job title, company, and source even after listings expire
 
