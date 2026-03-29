@@ -114,6 +114,13 @@ functions:
 #          authorizer:
 #            name: cognitoAuthorizer
 
+  updateUser:
+    handler: functions/updateUser.handler
+    events:
+      - httpApi:
+          path: /users/{userId}
+          method: put
+
   getJobs:
     handler: functions/getJobs.handler
     events:

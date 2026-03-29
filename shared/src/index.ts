@@ -2,6 +2,10 @@ export interface User {
   userId: string;
   email: string;
   name: string;
+  preferredName?: string;
+  city?: string;
+  country?: string;
+  jobPreferences?: string[];
   createdAt: string;
   resumeKey?: string;
 }

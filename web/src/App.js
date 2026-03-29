@@ -16,6 +16,7 @@ import ApplicationTracker from './components/ApplicationTracker';
 import AnalyticsPage from './components/AnalyticsPage';
 import ResumeManager from './components/ResumeManager';
 import ResumeTailor from './components/ResumeTailor';
+import ProfileSettings from './components/ProfileSettings';
 import ErrorBoundary from './components/ErrorBoundary';
 import OnboardingFlow from './components/OnboardingFlow';
 import analytics, { AnalyticsEvent } from './utils/analytics';
@@ -201,6 +202,12 @@ function App({ user, signOut }) {
             >
               Resumes
             </NavLink>
+            <NavLink
+              to="/profile"
+              className={({ isActive }) => (isActive ? 'active' : '')}
+            >
+              Profile
+            </NavLink>
           </nav>
         </header>
         <main className="App-main">
@@ -210,7 +217,7 @@ function App({ user, signOut }) {
               path="/"
               element={<Dashboard user={user} profile={profile} />}
             />
-            <Route path="/jobs" element={<JobSearch user={user} />} />
+            <Route path="/jobs" element={<JobSearch user={user} profile={profile} />} />
             <Route
               path="/experiences"
               element={<ExperienceManager user={user} />}
@@ -224,6 +231,16 @@ function App({ user, signOut }) {
             <Route
               path="/resume-tailor"
               element={<ResumeTailor user={user} />}
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProfileSettings
+                  user={user}
+                  profile={profile}
+                  onProfileUpdated={setProfile}
+                />
+              }
             />
           </Routes>
         </main>

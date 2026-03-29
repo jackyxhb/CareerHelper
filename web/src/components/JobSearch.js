@@ -8,11 +8,12 @@ import React, {
 import { API } from 'aws-amplify';
 import { logError, logInfo } from '../utils/logger';
 
-function JobSearch({ user }) {
+function JobSearch({ user, profile }) {
   const [internalJobs, setInternalJobs] = useState([]);
   const [externalJobs, setExternalJobs] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [locationTerm, setLocationTerm] = useState('');
+  const defaultsAppliedRef = useRef(false);
   // Tracks whether the user has explicitly triggered a search (button or Enter).
   // Prevents showing "No jobs found" on first load before any search is attempted.
   const [hasSearched, setHasSearched] = useState(false);
@@ -23,6 +24,19 @@ function JobSearch({ user }) {
 
   const externalCacheRef = useRef(new Map());
   const debounceRef = useRef(null);
+
+  // Seed search and location from profile preferences (once, non-destructively)
+  useEffect(() => {
+    if (!profile || defaultsAppliedRef.current) return;
+    defaultsAppliedRef.current = true;
+    if (profile.jobPreferences?.length > 0) {
+      setSearchTerm(profile.jobPreferences[0]);
+    }
+    const loc = [profile.city, profile.country].filter(Boolean).join(', ');
+    if (loc) {
+      setLocationTerm(loc);
+    }
+  }, [profile]);
 
   const userId = user?.username;
 
