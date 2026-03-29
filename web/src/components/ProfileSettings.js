@@ -185,7 +185,13 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
           />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-4)' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: 'var(--space-4)',
+          }}
+        >
           <div className="form-group">
             <label className="form-label">Country</label>
             <select
@@ -316,7 +322,13 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
         )}
       </div>
 
-      <div style={{ display: 'flex', gap: 'var(--space-4)', justifyContent: 'flex-end' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 'var(--space-4)',
+          justifyContent: 'flex-end',
+        }}
+      >
         <button
           type="button"
           className="btn btn-primary btn-lg"

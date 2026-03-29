@@ -72,13 +72,21 @@ function ResumeTailor() {
       <div className="page-header">
         <h1 className="page-title">AI Resume Tailor</h1>
         <p className="page-subtitle">
-          Paste your resume and a job description to get personalized suggestions
+          Paste your resume and a job description to get personalized
+          suggestions
         </p>
       </div>
 
       <form onSubmit={handleSubmit}>
         <div className="card mb-6">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: 'var(--space-4)',
+              marginBottom: 'var(--space-6)',
+            }}
+          >
             <div className="form-group">
               <label className="form-label">Job Title (optional)</label>
               <input
@@ -139,8 +147,14 @@ function ResumeTailor() {
       </form>
 
       {loading && (
-        <div className="card" style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
-          <div className="loading-spinner" style={{ margin: '0 auto', marginBottom: 'var(--space-4)' }} />
+        <div
+          className="card"
+          style={{ textAlign: 'center', padding: 'var(--space-8)' }}
+        >
+          <div
+            className="loading-spinner"
+            style={{ margin: '0 auto', marginBottom: 'var(--space-4)' }}
+          />
           <p className="text-muted">Analyzing your resume…</p>
         </div>
       )}
@@ -148,15 +162,17 @@ function ResumeTailor() {
       {results && (
         <div style={{ marginTop: 'var(--space-8)' }}>
           <div className="card mb-6">
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--space-4)',
-              padding: 'var(--space-6)',
-              backgroundColor: '#f9fafb',
-              borderRadius: 'var(--radius)',
-              marginBottom: 'var(--space-6)',
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-4)',
+                padding: 'var(--space-6)',
+                backgroundColor: '#f9fafb',
+                borderRadius: 'var(--radius)',
+                marginBottom: 'var(--space-6)',
+              }}
+            >
               <div
                 style={{
                   width: '80px',
@@ -174,24 +190,43 @@ function ResumeTailor() {
                 {results.overallScore}%
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 'var(--space-2)' }}>
+                <div
+                  style={{
+                    fontSize: '1.1rem',
+                    fontWeight: 600,
+                    marginBottom: 'var(--space-2)',
+                  }}
+                >
                   {getScoreMessage(results.overallScore)}
                 </div>
-                <div style={{ fontSize: '0.95rem', color: 'var(--color-text-secondary)' }}>
+                <div
+                  style={{
+                    fontSize: '0.95rem',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
                   {results.summary}
                 </div>
               </div>
             </div>
 
             {results.keywordsAdded?.length > 0 && (
-              <div style={{
-                padding: 'var(--space-4)',
-                backgroundColor: '#f0fdf4',
-                borderLeft: '4px solid var(--color-success)',
-                borderRadius: 'var(--radius-sm)',
-                marginBottom: 'var(--space-4)',
-              }}>
-                <div style={{ fontWeight: 600, marginBottom: 'var(--space-3)', color: '#059669' }}>
+              <div
+                style={{
+                  padding: 'var(--space-4)',
+                  backgroundColor: '#f0fdf4',
+                  borderLeft: '4px solid var(--color-success)',
+                  borderRadius: 'var(--radius-sm)',
+                  marginBottom: 'var(--space-4)',
+                }}
+              >
+                <div
+                  style={{
+                    fontWeight: 600,
+                    marginBottom: 'var(--space-3)',
+                    color: '#059669',
+                  }}
+                >
                   Keywords to Add
                 </div>
                 <div className="flex gap-2" style={{ flexWrap: 'wrap' }}>
@@ -216,8 +251,18 @@ function ResumeTailor() {
 
             {results.suggestions?.length > 0 && (
               <div style={{ marginBottom: 'var(--space-4)' }}>
-                <div style={{ fontWeight: 600, marginBottom: 'var(--space-3)' }}>💡 Suggestions</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--space-2)' }}>
+                <div
+                  style={{ fontWeight: 600, marginBottom: 'var(--space-3)' }}
+                >
+                  💡 Suggestions
+                </div>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr',
+                    gap: 'var(--space-2)',
+                  }}
+                >
                   {results.suggestions.map((suggestion, i) => (
                     <div
                       key={i}
@@ -239,8 +284,18 @@ function ResumeTailor() {
 
             {results.sections?.length > 0 && (
               <div>
-                <div style={{ fontWeight: 600, marginBottom: 'var(--space-3)' }}>📊 Section-by-Section Analysis</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--space-3)' }}>
+                <div
+                  style={{ fontWeight: 600, marginBottom: 'var(--space-3)' }}
+                >
+                  📊 Section-by-Section Analysis
+                </div>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr',
+                    gap: 'var(--space-3)',
+                  }}
+                >
                   {results.sections.map((section, i) => (
                     <div
                       key={i}
@@ -251,12 +306,26 @@ function ResumeTailor() {
                         borderRadius: 'var(--radius-sm)',
                       }}
                     >
-                      <div style={{ fontWeight: 600, marginBottom: 'var(--space-2)' }}>
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          marginBottom: 'var(--space-2)',
+                        }}
+                      >
                         Section {i + 1} — Match: {section.matchScore}%
                       </div>
-                      <ul style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
+                      <ul
+                        style={{
+                          margin: 0,
+                          paddingLeft: '1.5rem',
+                          fontSize: '0.9rem',
+                          color: 'var(--color-text-secondary)',
+                        }}
+                      >
                         {section.changes.map((change, j) => (
-                          <li key={j} style={{ marginBottom: '0.5rem' }}>{change}</li>
+                          <li key={j} style={{ marginBottom: '0.5rem' }}>
+                            {change}
+                          </li>
                         ))}
                       </ul>
                     </div>

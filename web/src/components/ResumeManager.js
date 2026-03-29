@@ -137,9 +137,7 @@ function ResumeManager({ user }) {
         </p>
       </div>
 
-      {feedback && (
-        <div className="alert alert-success mb-6">{feedback}</div>
-      )}
+      {feedback && <div className="alert alert-success mb-6">{feedback}</div>}
       {error && <div className="alert alert-error mb-6">{error}</div>}
 
       <div className="card mb-6">
@@ -147,14 +145,18 @@ function ResumeManager({ user }) {
           <h3 className="card-title">📄 Upload New Resume</h3>
         </div>
 
-        <div style={{
-          border: '2px dashed var(--color-border)',
-          borderRadius: 'var(--radius)',
-          padding: 'var(--space-8)',
-          textAlign: 'center',
-          backgroundColor: 'var(--color-bg)',
-        }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: 'var(--space-4)' }}>📄</div>
+        <div
+          style={{
+            border: '2px dashed var(--color-border)',
+            borderRadius: 'var(--radius)',
+            padding: 'var(--space-8)',
+            textAlign: 'center',
+            backgroundColor: 'var(--color-bg)',
+          }}
+        >
+          <div style={{ fontSize: '2.5rem', marginBottom: 'var(--space-4)' }}>
+            📄
+          </div>
           <input
             ref={fileInputRef}
             type="file"
@@ -181,24 +183,48 @@ function ResumeManager({ user }) {
           <div className="card-header">
             <h3 className="card-title">Your Resumes ({resumes.length})</h3>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--space-4)' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr',
+              gap: 'var(--space-4)',
+            }}
+          >
             {resumes.map(resume => (
-              <div key={resume.resumeId} style={{
-                padding: 'var(--space-4)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 'var(--space-4)',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flex: 1 }}>
+              <div
+                key={resume.resumeId}
+                style={{
+                  padding: 'var(--space-4)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 'var(--space-4)',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--space-3)',
+                    flex: 1,
+                  }}
+                >
                   <div style={{ fontSize: '1.5rem' }}>📄</div>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 500, color: 'var(--color-text)' }}>
+                    <div
+                      style={{ fontWeight: 500, color: 'var(--color-text)' }}
+                    >
                       {resume.fileName}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: '0.25rem' }}>
+                    <div
+                      style={{
+                        fontSize: '0.85rem',
+                        color: 'var(--color-text-secondary)',
+                        marginTop: '0.25rem',
+                      }}
+                    >
                       Uploaded {new Date(resume.createdAt).toLocaleDateString()}
                     </div>
                   </div>

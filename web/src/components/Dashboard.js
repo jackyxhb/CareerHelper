@@ -22,11 +22,13 @@ function Dashboard({ user, profile }) {
 
     const fetchUserData = async userId => {
       try {
-        const [jobsData, experiencesData, applicationsData] = await Promise.all([
-          API.get('CareerHelperAPI', '/jobs'),
-          API.get('CareerHelperAPI', `/experiences/${userId}`),
-          API.get('CareerHelperAPI', `/applications/${userId}`),
-        ]);
+        const [jobsData, experiencesData, applicationsData] = await Promise.all(
+          [
+            API.get('CareerHelperAPI', '/jobs'),
+            API.get('CareerHelperAPI', `/experiences/${userId}`),
+            API.get('CareerHelperAPI', `/applications/${userId}`),
+          ]
+        );
 
         setJobs(jobsData || []);
         setExperiences(experiencesData || []);
@@ -65,7 +67,10 @@ function Dashboard({ user, profile }) {
     return (
       <div className="page-container">
         <div style={{ textAlign: 'center', padding: 'var(--space-16)' }}>
-          <div className="loading-spinner" style={{ margin: '0 auto', marginBottom: 'var(--space-4)' }} />
+          <div
+            className="loading-spinner"
+            style={{ margin: '0 auto', marginBottom: 'var(--space-4)' }}
+          />
           <p className="text-muted">Loading your dashboard...</p>
         </div>
       </div>
@@ -113,10 +118,12 @@ function Dashboard({ user, profile }) {
       <div className="page-header">
         <div>
           <h1 className="page-title">
-            Welcome back{profile?.name ? `, ${profile.name.split(' ')[0]}` : ''}! 👋
+            Welcome back{profile?.name ? `, ${profile.name.split(' ')[0]}` : ''}
+            ! 👋
           </h1>
           <p className="page-subtitle">
-            Your professional narrative is evolving — here&apos;s your current career trajectory.
+            Your professional narrative is evolving — here&apos;s your current
+            career trajectory.
           </p>
         </div>
       </div>
@@ -173,7 +180,13 @@ function Dashboard({ user, profile }) {
             </div>
           )}
           {experiences.length > 3 && (
-            <div style={{ borderTop: '1px solid var(--color-gray-100)', paddingTop: 'var(--space-4)', marginTop: 'var(--space-4)' }}>
+            <div
+              style={{
+                borderTop: '1px solid var(--color-gray-100)',
+                paddingTop: 'var(--space-4)',
+                marginTop: 'var(--space-4)',
+              }}
+            >
               <a
                 href="/experiences"
                 style={{
@@ -199,9 +212,12 @@ function Dashboard({ user, profile }) {
               {applications.slice(0, 3).map(app => (
                 <li key={app.applicationId} className="list-item">
                   <div className="list-item-content">
-                    <div className="list-item-title">{app.jobTitle || 'Job Application'}</div>
+                    <div className="list-item-title">
+                      {app.jobTitle || 'Job Application'}
+                    </div>
                     <div className="list-item-subtitle">
-                      {app.jobCompany} • {new Date(
+                      {app.jobCompany} •{' '}
+                      {new Date(
                         app.createdAt || Date.now()
                       ).toLocaleDateString()}
                     </div>
@@ -225,7 +241,13 @@ function Dashboard({ user, profile }) {
             </div>
           )}
           {applications.length > 3 && (
-            <div style={{ borderTop: '1px solid var(--color-gray-100)', paddingTop: 'var(--space-4)', marginTop: 'var(--space-4)' }}>
+            <div
+              style={{
+                borderTop: '1px solid var(--color-gray-100)',
+                paddingTop: 'var(--space-4)',
+                marginTop: 'var(--space-4)',
+              }}
+            >
               <a
                 href="/applications"
                 style={{

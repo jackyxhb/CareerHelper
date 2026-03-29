@@ -49,11 +49,7 @@ function AuthSignIn({ onAuthStateChange }) {
           <p className="auth-subtitle">Sign in to your CareerHelper account</p>
         </div>
 
-        {error && (
-          <div className="alert alert-error mb-4">
-            {error}
-          </div>
-        )}
+        {error && <div className="alert alert-error mb-4">{error}</div>}
 
         <form onSubmit={handleSignIn} className="auth-form">
           <div className="form-group">
@@ -151,8 +147,7 @@ function AuthSignUp({ onSignUpComplete, onBackToSignIn }) {
       logInfo('User signed up successfully', { email: formData.email });
       setConfirmationCode(true);
     } catch (err) {
-      const message =
-        err.message || 'Sign up failed. Please try again.';
+      const message = err.message || 'Sign up failed. Please try again.';
       setError(message);
       logError('Sign up failed', err, { email: formData.email });
     } finally {
@@ -190,11 +185,7 @@ function AuthSignUp({ onSignUpComplete, onBackToSignIn }) {
             </p>
           </div>
 
-          {error && (
-            <div className="alert alert-error mb-4">
-              {error}
-            </div>
-          )}
+          {error && <div className="alert alert-error mb-4">{error}</div>}
 
           <form onSubmit={handleConfirmSignUp} className="auth-form">
             <div className="form-group">
@@ -252,11 +243,7 @@ function AuthSignUp({ onSignUpComplete, onBackToSignIn }) {
           <p className="auth-subtitle">Create your CareerHelper account</p>
         </div>
 
-        {error && (
-          <div className="alert alert-error mb-4">
-            {error}
-          </div>
-        )}
+        {error && <div className="alert alert-error mb-4">{error}</div>}
 
         <form onSubmit={handleSignUp} className="auth-form">
           <div className="form-group">
@@ -266,9 +253,7 @@ function AuthSignUp({ onSignUpComplete, onBackToSignIn }) {
               className="form-input"
               placeholder="John Doe"
               value={formData.name}
-              onChange={e =>
-                setFormData({ ...formData, name: e.target.value })
-              }
+              onChange={e => setFormData({ ...formData, name: e.target.value })}
               required
               disabled={loading}
             />
@@ -303,7 +288,8 @@ function AuthSignUp({ onSignUpComplete, onBackToSignIn }) {
               disabled={loading}
             />
             <p className="form-hint">
-              At least 8 characters, with uppercase, lowercase, number, and special character
+              At least 8 characters, with uppercase, lowercase, number, and
+              special character
             </p>
           </div>
 

@@ -19,7 +19,8 @@
       "Read(//Users/macebook1/work/Jack/CareerHelper/**)",
       "Bash(node -e \":*)",
       "Bash(bash /Users/macbook1/work/Jack/CareerHelper/scripts/sandbox-check.sh \"serverless deploy\" 2>&1)",
-      "Bash(bash /Users/macbook1/work/Jack/CareerHelper/scripts/sandbox-check.sh \"aws s3 sync\" 2>&1)"
+      "Bash(bash /Users/macbook1/work/Jack/CareerHelper/scripts/sandbox-check.sh \"aws s3 sync\" 2>&1)",
+      "Bash(gh release:*)"
     ],
     "deny": [
       "Bash(git push --force*)",

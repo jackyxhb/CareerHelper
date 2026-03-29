@@ -309,7 +309,14 @@ function JobSearch({ user, profile }) {
       </div>
 
       <div className="card mb-6">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: 'var(--space-4)',
+            marginBottom: 'var(--space-4)',
+          }}
+        >
           <div className="form-group">
             <label className="form-label">Job Title or Keyword</label>
             <input

@@ -26,7 +26,9 @@ describe('ApplicationTracker', () => {
           appliedAt: new Date('2024-01-02').toISOString(),
         },
       ])
-      .mockResolvedValueOnce([{ jobId: 'job-1', title: 'Product Designer', company: 'Design Co' }]);
+      .mockResolvedValueOnce([
+        { jobId: 'job-1', title: 'Product Designer', company: 'Design Co' },
+      ]);
 
     render(<ApplicationTracker user={{ username: 'user-1' }} />);
 
