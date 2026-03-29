@@ -36,16 +36,13 @@ export const handler = async (event: APIGatewayProxyEvent) => {
 
     // Deduplicate applications by (jobTitle, jobCompany, jobLocation)
     // Keep the most recent application for each unique job
-    const deduped = new Map<
-      string,
-      Record<string, any>
-    >();
+    const deduped = new Map<string, Record<string, any>>();
 
     (result.Items || []).forEach(app => {
       const key = `${app.jobTitle || ''}|${app.jobCompany || ''}|${app.jobLocation || ''}`;
       const existing = deduped.get(key);
 
-      if (!existing || (app.appliedAt > existing.appliedAt)) {
+      if (!existing || app.appliedAt > existing.appliedAt) {
         deduped.set(key, app);
       }
     });
