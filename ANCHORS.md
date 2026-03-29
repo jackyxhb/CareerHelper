@@ -155,6 +155,33 @@ Use a Supervisor pattern housed in `.agents/`:
 - **Positive:** Parallel workstreams, protected context, role-specialized output quality
 - **Negative:** Coordination overhead for simple tasks (skip orchestration if <3 tool calls)
 
+
+## ADR-008: Dual Job Data Sources (JSearch + Adzuna)
+
+**Date:** 2026-03-29
+**Status:** Accepted
+
+### Context
+JSearch (via RapidAPI) has limited coverage outside major US/UK markets. Users in NZ and AU
+(Auckland, Wellington, Sydney, etc.) consistently get zero results. Seek dominates NZ/AU job
+markets but has no public search API.
+
+### Decision
+Run two job providers in parallel inside `searchJobs.ts`:
+1. **JSearch** — primary provider for US/UK/global results
+2. **Adzuna** — activated when location keywords match NZ or AU city names; Adzuna aggregates
+   Seek listings and exposes a free developer API
+
+Adzuna results are placed first in the combined list. Deduplication by
+`title.toLowerCase()|company.toLowerCase()` key prevents double entries. Adzuna is
+non-fatal: if credentials are absent or the call fails, JSearch-only results are returned.
+
+Credentials stored in AWS SSM: `adzuna-app-id` and `adzuna-app-key`.
+
+### Consequences
+- **Positive:** NZ/AU users now see real Seek listings; graceful degradation if Adzuna is unconfigured
+- **Negative:** Two external API dependencies; Adzuna free tier rate-limited to 250 req/day
+
 ---
 
 ## Active Decisions
@@ -168,6 +195,7 @@ Use a Supervisor pattern housed in `.agents/`:
 | ADR-005 | Amplify DataStore for Mobile | Accepted |
 | ADR-006 | Agent Sandbox Isolation | Accepted |
 | ADR-007 | Agent Orchestration (Supervisor Pattern) | Accepted |
+| ADR-008 | Dual Job Data Sources (JSearch + Adzuna) | Accepted |
 
 ---
 

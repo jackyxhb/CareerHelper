@@ -208,6 +208,11 @@ MCP servers are registered in `.mcp.json`. Approve them on first launch when Cla
 - `BRAVE_API_KEY` — Brave Search API key
 - `GITHUB_TOKEN` — GitHub personal access token with `repo` + `workflow` scopes
 
+**AWS SSM parameters** (required for full job search coverage):
+- `adzuna-app-id` — Adzuna API app ID (NZ/AU job search via Seek aggregation)
+- `adzuna-app-key` — Adzuna API app key
+  Register at developer.adzuna.com. Without these, NZ/AU searches fall back to JSearch only.
+
 ## Middleware Layers
 
 Each toggleable layer is documented in `.agents/middleware/`. Disable cleanly — do not hardcode bypasses.
