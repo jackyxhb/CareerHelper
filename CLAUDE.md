@@ -86,9 +86,12 @@ yarn deploy:mobile        # Deploy mobile with Amplify
 - 80-character line width
 
 ### Testing
-- Jest for all workspaces
+- Jest for web/mobile workspaces; **Mocha + Chai** for backend
+- Backend test runner config: `backend/.mocharc.yml` (spec glob, ts-node registration)
+- Mock AWS SDK with **`aws-sdk-client-mock`** (`mockClient(DynamoDBDocumentClient)`) — not proxyquire
+  - proxyquire cannot stub TS default exports reliably; use aws-sdk-client-mock for DynamoDB
+  - For external HTTP calls, stub `global.fetch` with sinon
 - Minimum 80% code coverage
-- Mock AWS SDK for unit tests
 
 ## Git Workflow
 
@@ -253,6 +256,7 @@ See `ANCHORS.md` for documented decisions including:
 |------|---------|
 | `serverless.yml` | Backend API definition |
 | `backend/serverless.yml` | Lambda function handlers |
+| `backend/.mocharc.yml` | Mocha test runner config (spec glob, ts-node) |
 | `infrastructure/lib/` | CDK infrastructure code |
 | `shared/src/` | TypeScript interfaces |
 | `web/src/` | React components |

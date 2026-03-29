@@ -7,10 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
-- N/A
+- `backend/test/searchJobs.test.js` — 23 tests covering pure functions (`detectAdzunaCountry`, `deduplicateJobs`, `sanitizeForRetry`, `normalizeJSearchJob`, `normalizeAdzunaJob`) and handler integration (400 validation, JSearch results, Adzuna merge, dedup, retry, `providersWarning`)
+- `backend/test/secrets.test.js` — 7 tests for `SecretsManager.getAdzunaCredentials` using `aws-sdk-client-mock` (happy path, ParameterNotFound, SSM error, empty appId, stage path, caching, clearCache)
+- `backend/.mocharc.yml` — mocha glob config so `test/**/*.test.js` discovery works in non-interactive shells
 
 ### Changed
-- N/A
+- `searchJobs.ts`: replace `any` with typed `JSearchJobRaw`, `JSearchResponse`, `AdzunaJobRaw`, `AdzunaResponse` interfaces; add `sanitizeForRetry()` to strip special chars before retry query; track `jSearchFailed` flag; expose `providersWarning` in response when all providers fail
+- `secrets.ts`: differentiate ParameterNotFound (log INFO) from unexpected SSM errors (log WARN) in `getAdzunaCredentials`
+- `backend/test/createUser.test.js`: rewrite with `aws-sdk-client-mock` on `DynamoDBDocumentClient`; fixes pre-existing failure caused by proxyquire not handling TS default exports; adds 409 conflict case
+- `backend/test/getUser.test.js`: rewrite with `aws-sdk-client-mock` on `DynamoDBDocumentClient`; fixes pre-existing failure
+- `backend/package.json`: simplify `test`/`test:coverage` scripts to delegate spec glob to `.mocharc.yml`
 
 ### Fixed
 - N/A
