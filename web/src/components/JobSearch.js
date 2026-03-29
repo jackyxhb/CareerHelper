@@ -309,11 +309,8 @@ function JobSearch({ user, profile }) {
       </div>
 
       <div className="card mb-6">
-        <div
-          className="flex gap-4"
-          style={{ flexWrap: 'wrap', alignItems: 'flex-end' }}
-        >
-          <div className="form-group" style={{ flex: 2, marginBottom: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
+          <div className="form-group">
             <label className="form-label">Job Title or Keyword</label>
             <input
               type="text"
@@ -324,7 +321,7 @@ function JobSearch({ user, profile }) {
               onKeyDown={handleKeyDown}
             />
           </div>
-          <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+          <div className="form-group">
             <label className="form-label">Location</label>
             <input
               type="text"
@@ -335,15 +332,15 @@ function JobSearch({ user, profile }) {
               onKeyDown={handleKeyDown}
             />
           </div>
-          <button
-            type="button"
-            className="btn btn-primary"
-            style={{ whiteSpace: 'nowrap' }}
-            onClick={handleSearch}
-          >
-            🔍 Find Jobs
-          </button>
         </div>
+        <button
+          type="button"
+          className="btn btn-primary btn-lg"
+          style={{ width: '100%' }}
+          onClick={handleSearch}
+        >
+          🔍 Find Jobs
+        </button>
       </div>
 
       {feedback && (

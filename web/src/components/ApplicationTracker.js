@@ -192,23 +192,13 @@ function ApplicationTracker({ user }) {
 
   return (
     <div className="page-container">
-      <div
-        className="page-header"
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-        }}
-      >
+      <div className="page-header">
         <div>
           <h1 className="page-title">Application Tracker</h1>
           <p className="page-subtitle">
-            Managing your professional journey with precision and calm.
+            Monitor your job applications and career progress
           </p>
         </div>
-        <a href="/jobs" className="btn btn-primary">
-          + New Application
-        </a>
       </div>
 
       <div

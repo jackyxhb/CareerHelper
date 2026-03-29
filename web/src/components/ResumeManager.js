@@ -110,112 +110,130 @@ function ResumeManager({ user }) {
 
   if (!user?.username) {
     return (
-      <div>
-        <h2>Resume Library</h2>
-        <p>Please sign in to manage resumes.</p>
+      <div className="page-container">
+        <div className="page-header">
+          <h1 className="page-title">Resume Library</h1>
+          <p className="page-subtitle">Upload and manage your resumes</p>
+        </div>
+        <div className="card">
+          <div className="empty-state">
+            <div className="empty-state-icon">🔐</div>
+            <div className="empty-state-title">Sign in to manage resumes</div>
+            <p className="empty-state-text">
+              Upload and manage your resumes for job applications.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="analytics-page">
-      {!user?.username ? (
-        <>
-          <div className="section-header">
-            <h2>Resume Library</h2>
+    <div className="page-container">
+      <div className="page-header">
+        <h1 className="page-title">Resume Library</h1>
+        <p className="page-subtitle">
+          Upload and manage resumes used across your applications
+        </p>
+      </div>
+
+      {feedback && (
+        <div className="alert alert-success mb-6">{feedback}</div>
+      )}
+      {error && <div className="alert alert-error mb-6">{error}</div>}
+
+      <div className="card mb-6">
+        <div className="card-header">
+          <h3 className="card-title">📄 Upload New Resume</h3>
+        </div>
+
+        <div style={{
+          border: '2px dashed var(--color-border)',
+          borderRadius: 'var(--radius)',
+          padding: 'var(--space-8)',
+          textAlign: 'center',
+          backgroundColor: 'var(--color-bg)',
+        }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: 'var(--space-4)' }}>📄</div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            onChange={handleUpload}
+            disabled={uploading}
+            id="resume-upload-input"
+            style={{ display: 'none' }}
+          />
+          <label
+            htmlFor="resume-upload-input"
+            className="btn btn-primary"
+            style={{ cursor: 'pointer', marginBottom: 'var(--space-3)' }}
+          >
+            {uploading ? '⏳ Uploading...' : '📁 Choose File'}
+          </label>
+          <p className="text-sm text-muted">PDF or Word (max 15 MB)</p>
+        </div>
+      </div>
+
+      {resumes.length > 0 ? (
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">Your Resumes ({resumes.length})</h3>
           </div>
-          <div className="dashboard-card">
-            <div className="empty-state">
-              <div className="empty-state-icon">🔐</div>
-              <h3>Sign in to manage resumes</h3>
-              <p>Upload and manage your resumes for job applications.</p>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--space-4)' }}>
+            {resumes.map(resume => (
+              <div key={resume.resumeId} style={{
+                padding: 'var(--space-4)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 'var(--space-4)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flex: 1 }}>
+                  <div style={{ fontSize: '1.5rem' }}>📄</div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 500, color: 'var(--color-text)' }}>
+                      {resume.fileName}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: '0.25rem' }}>
+                      Uploaded {new Date(resume.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <a
+                    href={resume.downloadUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn-secondary btn-sm"
+                  >
+                    👁 View
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(resume.resumeId)}
+                    className="btn btn-secondary btn-sm"
+                    style={{ color: 'var(--color-error)' }}
+                  >
+                    🗑 Delete
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        </>
+        </div>
       ) : (
-        <>
-          <div className="section-header">
-            <h2>Resume Library</h2>
-            <p className="section-subtitle">
-              Upload and manage resumes used across your applications
+        <div className="card">
+          <div className="empty-state">
+            <div className="empty-state-icon">📁</div>
+            <div className="empty-state-title">No resumes uploaded</div>
+            <p className="empty-state-text">
+              Upload your first resume to use in job applications.
             </p>
           </div>
-
-          <div className="dashboard-card">
-            <h3>Upload New Resume</h3>
-            <div className="resume-upload modern-upload">
-              <div className="upload-zone">
-                <span className="upload-icon">📄</span>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                  aria-label="Upload resume"
-                  onChange={handleUpload}
-                  disabled={uploading}
-                  id="resume-upload-input"
-                />
-                <label
-                  htmlFor="resume-upload-input"
-                  className="btn btn-outline"
-                >
-                  {uploading ? 'Uploading...' : 'Choose File'}
-                </label>
-                <span className="upload-hint">PDF or Word (max 15 MB)</span>
-              </div>
-            </div>
-
-            {uploading && <div className="loading-spinner">Uploading...</div>}
-            {feedback && (
-              <div className={`alert alert-success`}>{feedback}</div>
-            )}
-            {error && <div className={`alert alert-error`}>{error}</div>}
-          </div>
-
-          {resumes.length > 0 ? (
-            <div className="dashboard-card">
-              <h3>Your Resumes</h3>
-              <ul className="resume-list">
-                {resumes.map(resume => (
-                  <li key={resume.resumeId} className="resume-item">
-                    <div className="resume-icon">📄</div>
-                    <div className="resume-info">
-                      <strong>{resume.fileName}</strong>
-                      <div className="resume-meta">
-                        Uploaded {new Date(resume.createdAt).toLocaleString()}
-                      </div>
-                    </div>
-                    <div className="resume-actions">
-                      <a
-                        href={resume.downloadUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn btn-outline btn-sm"
-                      >
-                        View
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(resume.resumeId)}
-                        className="btn btn-outline btn-sm btn-danger"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            <div className="dashboard-card">
-              <div className="empty-state">
-                <div className="empty-state-icon">📁</div>
-                <h3>No resumes uploaded</h3>
-                <p>Upload your first resume to use in job applications.</p>
-              </div>
-            </div>
-          )}
-        </>
+        </div>
       )}
     </div>
   );

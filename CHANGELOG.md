@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.0.6] - 2026-03-30
+
+### Added
+- **Complete Frontend Design Redesign**: All page components refactored to use consistent modern design system
+
+### Changed
+- **AnalyticsPage.js**: Converted from old analytics-page/section-header/dashboard-card structure to `.page-container`, `.page-header`, `.card`; added loading spinner, improved error state, styled data table with CSS variables
+- **ResumeManager.js**: Modernized upload zone with dashed border and emoji icon; resume list as styled cards with inline actions; consistent empty states
+- **ResumeTailor.js**: **Removed 180 lines of inline styles** — converted to design system; form uses 2-column grid layout; results display score circle (dynamic color), sections, keywords, suggestions all using `--space-*`, `--color-*`, `--radius` variables
+- **JobSearch.js**: Improved search form layout with 2-column grid (Job Title, Location); full-width search button for better mobile UX
+- **ApplicationTracker.js**: Simplified page header, consistent card-based layout for saved/applied job cards
+- **ProfileSettings.js**: Country/City fields converted to 2-column grid; Save button enhanced with emoji and `.btn-lg` sizing
+- **ExperienceManager.js**: Modern card-based form (previous session), experience list as individual cards with date badges
+- **Dashboard.js**: Redesigned stat cards to split applications into saved/applied counts (previous session), improved empty states with actionable buttons
+
+### Result
+- **All pages now follow consistent design system**: `.page-container` → `.page-header` → `.card` hierarchy
+- **Unified styling approach**: CSS variable spacing (`--space-4`, `--space-6`), colors (`--color-*`), and typography
+- **Better mobile responsiveness**: 2-column grids convert to single column on smaller screens
+- **Improved accessibility**: Form labels, disabled states, loading spinners throughout
+
 ## [0.0.5] - 2026-03-30
 
 ### Added

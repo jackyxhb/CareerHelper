@@ -185,8 +185,8 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
           />
         </div>
 
-        <div className="flex gap-4" style={{ flexWrap: 'wrap' }}>
-          <div className="form-group" style={{ flex: 1 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-4)' }}>
+          <div className="form-group">
             <label className="form-label">Country</label>
             <select
               className="form-input"
@@ -201,7 +201,7 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
               ))}
             </select>
           </div>
-          <div className="form-group" style={{ flex: 1 }}>
+          <div className="form-group">
             <label className="form-label">City</label>
             <select
               className="form-input"
@@ -264,12 +264,9 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
           </div>
         )}
 
-        <div
-          className="flex gap-2"
-          style={{ alignItems: 'flex-end', flexWrap: 'wrap' }}
-        >
-          <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-            <label className="form-label">Add a role</label>
+        <div className="form-group">
+          <label className="form-label">Add a role</label>
+          <div className="flex gap-2">
             <input
               type="text"
               className="form-input"
@@ -278,16 +275,17 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
               onChange={e => setRoleInput(e.target.value)}
               onKeyDown={handleRoleKeyDown}
               maxLength={100}
+              style={{ flex: 1 }}
             />
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={addRole}
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              + Add
+            </button>
           </div>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={addRole}
-            style={{ whiteSpace: 'nowrap' }}
-          >
-            + Add
-          </button>
         </div>
 
         {unusedSuggestions.length > 0 && (
@@ -318,14 +316,14 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
         )}
       </div>
 
-      <div className="flex gap-4">
+      <div style={{ display: 'flex', gap: 'var(--space-4)', justifyContent: 'flex-end' }}>
         <button
           type="button"
-          className="btn btn-primary"
+          className="btn btn-primary btn-lg"
           onClick={handleSave}
           disabled={isSaving}
         >
-          {isSaving ? 'Saving…' : 'Save Profile'}
+          {isSaving ? '💾 Saving…' : '💾 Save Profile'}
         </button>
       </div>
     </div>

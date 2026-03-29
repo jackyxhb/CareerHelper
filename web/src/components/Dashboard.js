@@ -22,13 +22,11 @@ function Dashboard({ user, profile }) {
 
     const fetchUserData = async userId => {
       try {
-        const [jobsData, experiencesData, applicationsData] = await Promise.all(
-          [
-            API.get('CareerHelperAPI', '/jobs'),
-            API.get('CareerHelperAPI', `/experiences/${userId}`),
-            API.get('CareerHelperAPI', `/applications/${userId}`),
-          ]
-        );
+        const [jobsData, experiencesData, applicationsData] = await Promise.all([
+          API.get('CareerHelperAPI', '/jobs'),
+          API.get('CareerHelperAPI', `/experiences/${userId}`),
+          API.get('CareerHelperAPI', `/applications/${userId}`),
+        ]);
 
         setJobs(jobsData || []);
         setExperiences(experiencesData || []);
@@ -66,32 +64,35 @@ function Dashboard({ user, profile }) {
   if (isLoading) {
     return (
       <div className="page-container">
-        <div className="text-center p-6">
-          <div className="loading-spinner" style={{ margin: '0 auto' }}></div>
-          <p className="mt-4 text-muted">Loading your dashboard...</p>
+        <div style={{ textAlign: 'center', padding: 'var(--space-16)' }}>
+          <div className="loading-spinner" style={{ margin: '0 auto', marginBottom: 'var(--space-4)' }} />
+          <p className="text-muted">Loading your dashboard...</p>
         </div>
       </div>
     );
   }
 
+  const savedApps = applications.filter(a => a.status === 'SAVED').length;
+  const appliedApps = applications.filter(a => a.status !== 'SAVED').length;
+
   const stats = [
     {
-      label: 'Active Jobs',
+      label: 'Job Opportunities',
       value: jobs.length,
       icon: '💼',
       color: '#6366f1',
       bgColor: '#eef2ff',
     },
     {
-      label: 'Experiences',
-      value: experiences.length,
-      icon: '📋',
+      label: 'Saved Jobs',
+      value: savedApps,
+      icon: '💾',
       color: '#8b5cf6',
       bgColor: '#f3e8ff',
     },
     {
       label: 'Applications',
-      value: applications.length,
+      value: appliedApps,
       icon: '📤',
       color: '#10b981',
       bgColor: '#d1fae5',
@@ -110,14 +111,14 @@ function Dashboard({ user, profile }) {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h1 className="page-title">
-          Welcome back{profile?.name ? `, ${profile.name.split(' ')[0]}` : ''}!
-          👋
-        </h1>
-        <p className="page-subtitle">
-          Your professional narrative is evolving — here&apos;s your current
-          career trajectory.
-        </p>
+        <div>
+          <h1 className="page-title">
+            Welcome back{profile?.name ? `, ${profile.name.split(' ')[0]}` : ''}! 👋
+          </h1>
+          <p className="page-subtitle">
+            Your professional narrative is evolving — here&apos;s your current career trajectory.
+          </p>
+        </div>
       </div>
 
       <div className="stats-grid">
@@ -141,6 +142,7 @@ function Dashboard({ user, profile }) {
         <div className="card">
           <div className="card-header">
             <h3 className="card-title">📋 Recent Experiences</h3>
+            <span className="badge badge-primary">{experiences.length}</span>
           </div>
           {experiences.length > 0 ? (
             <ul className="list">
@@ -165,8 +167,23 @@ function Dashboard({ user, profile }) {
               <p className="empty-state-text">
                 Add your work history to showcase your career
               </p>
-              <a href="/experiences" className="btn btn-primary">
+              <a href="/experiences" className="btn btn-primary btn-sm">
                 Add Experience
+              </a>
+            </div>
+          )}
+          {experiences.length > 3 && (
+            <div style={{ borderTop: '1px solid var(--color-gray-100)', paddingTop: 'var(--space-4)', marginTop: 'var(--space-4)' }}>
+              <a
+                href="/experiences"
+                style={{
+                  color: 'var(--color-primary)',
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  fontSize: '0.9rem',
+                }}
+              >
+                View all ({experiences.length}) →
               </a>
             </div>
           )}
@@ -175,17 +192,16 @@ function Dashboard({ user, profile }) {
         <div className="card">
           <div className="card-header">
             <h3 className="card-title">📤 Recent Applications</h3>
+            <span className="badge badge-success">{applications.length}</span>
           </div>
           {applications.length > 0 ? (
             <ul className="list">
               {applications.slice(0, 3).map(app => (
                 <li key={app.applicationId} className="list-item">
                   <div className="list-item-content">
-                    <div className="list-item-title">
-                      Application #{app.applicationId.slice(0, 8)}
-                    </div>
+                    <div className="list-item-title">{app.jobTitle || 'Job Application'}</div>
                     <div className="list-item-subtitle">
-                      {new Date(
+                      {app.jobCompany} • {new Date(
                         app.createdAt || Date.now()
                       ).toLocaleDateString()}
                     </div>
@@ -203,15 +219,30 @@ function Dashboard({ user, profile }) {
               <p className="empty-state-text">
                 Start tracking your job applications
               </p>
-              <a href="/applications" className="btn btn-primary">
-                Track Applications
+              <a href="/jobs" className="btn btn-primary btn-sm">
+                Find Jobs
+              </a>
+            </div>
+          )}
+          {applications.length > 3 && (
+            <div style={{ borderTop: '1px solid var(--color-gray-100)', paddingTop: 'var(--space-4)', marginTop: 'var(--space-4)' }}>
+              <a
+                href="/applications"
+                style={{
+                  color: 'var(--color-primary)',
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  fontSize: '0.9rem',
+                }}
+              >
+                View all ({applications.length}) →
               </a>
             </div>
           )}
         </div>
       </div>
 
-      <div className="mt-8">
+      <div style={{ marginTop: 'var(--space-8)' }}>
         <DashboardInsights
           analytics={analytics}
           isLoading={false}
@@ -219,25 +250,29 @@ function Dashboard({ user, profile }) {
         />
       </div>
 
-      <div className="mt-8">
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">💡 Quick Actions</h3>
-          </div>
-          <div className="flex gap-4" style={{ flexWrap: 'wrap' }}>
-            <a href="/jobs" className="btn btn-primary">
-              🔍 Find Jobs
-            </a>
-            <a href="/experiences" className="btn btn-secondary">
-              ➕ Add Experience
-            </a>
-            <a href="/resume-tailor" className="btn btn-secondary">
-              ✨ AI Resume Tailor
-            </a>
-            <a href="/resumes" className="btn btn-secondary">
-              📄 Manage Resumes
-            </a>
-          </div>
+      <div className="card" style={{ marginTop: 'var(--space-8)' }}>
+        <div className="card-header">
+          <h3 className="card-title">💡 Quick Actions</h3>
+        </div>
+        <div className="flex gap-4" style={{ flexWrap: 'wrap' }}>
+          <a href="/jobs" className="btn btn-primary">
+            🔍 Find Jobs
+          </a>
+          <a href="/experiences" className="btn btn-secondary">
+            ➕ Add Experience
+          </a>
+          <a href="/applications" className="btn btn-secondary">
+            📊 View Applications
+          </a>
+          <a href="/resume-tailor" className="btn btn-secondary">
+            ✨ AI Resume Tailor
+          </a>
+          <a href="/resumes" className="btn btn-secondary">
+            📄 Manage Resumes
+          </a>
+          <a href="/profile" className="btn btn-secondary">
+            👤 Profile Settings
+          </a>
         </div>
       </div>
     </div>
@@ -246,6 +281,7 @@ function Dashboard({ user, profile }) {
 
 function getStatusColor(status) {
   const statusColors = {
+    SAVED: 'neutral',
     APPLIED: 'primary',
     INTERVIEWING: 'warning',
     OFFERED: 'success',

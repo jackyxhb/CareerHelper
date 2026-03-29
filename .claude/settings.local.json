@@ -15,7 +15,11 @@
       "Bash(git pull:*)",
       "Bash(gh:*)",
       "Bash(grep -l '\"\"test\"\"' /Users/macbook1/work/Jack/CareerHelper/web/package.json /Users/macbook1/work/Jack/CareerHelper/backend/package.json /Users/macbook1/work/Jack/CareerHelper/mobile/package.json /Users/macbook1/work/Jack/CareerHelper/shared/package.json)",
-      "Bash(grep '\"\"test\"\"' /Users/macbook1/work/Jack/CareerHelper/backend/package.json /Users/macbook1/work/Jack/CareerHelper/shared/package.json)"
+      "Bash(grep '\"\"test\"\"' /Users/macbook1/work/Jack/CareerHelper/backend/package.json /Users/macbook1/work/Jack/CareerHelper/shared/package.json)",
+      "Read(//Users/macebook1/work/Jack/CareerHelper/**)",
+      "Bash(node -e \":*)",
+      "Bash(bash /Users/macbook1/work/Jack/CareerHelper/scripts/sandbox-check.sh \"serverless deploy\" 2>&1)",
+      "Bash(bash /Users/macbook1/work/Jack/CareerHelper/scripts/sandbox-check.sh \"aws s3 sync\" 2>&1)"
     ],
     "deny": [
       "Bash(git push --force*)",

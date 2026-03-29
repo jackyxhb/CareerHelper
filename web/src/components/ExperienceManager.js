@@ -12,7 +12,9 @@ function ExperienceManager({ user }) {
     description: '',
   });
   const [feedback, setFeedback] = useState(null);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   const userId = user?.username;
 
@@ -47,9 +49,11 @@ function ExperienceManager({ user }) {
     e.preventDefault();
 
     if (!userId) {
-      setFeedback('Sign in to add experiences.');
+      setFeedback({ type: 'error', message: 'Sign in to add experiences.' });
       return;
     }
+
+    setLoading(true);
 
     try {
       await API.post('CareerHelperAPI', '/experiences', {
@@ -65,20 +69,30 @@ function ExperienceManager({ user }) {
         endDate: '',
         description: '',
       });
-      setFeedback('Experience saved.');
+      setShowForm(false);
+      setEditingId(null);
+      setFeedback({ type: 'success', message: '✓ Experience added successfully!' });
       logInfo('Experience created via web form', {
         userId,
         company: formData.company,
         title: formData.title,
       });
       fetchExperiences(userId);
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setFeedback(null), 3000);
     } catch (error) {
-      setFeedback('Could not save experience. Please try again.');
+      setFeedback({
+        type: 'error',
+        message: 'Could not save experience. Please try again.',
+      });
       logError('Failed to create experience on web', error, {
         userId,
         company: formData.company,
         title: formData.title,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -86,143 +100,258 @@ function ExperienceManager({ user }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  return (
-    <div className="analytics-page">
-      <div className="section-header">
-        <h2>Experience Manager</h2>
-        <p className="section-subtitle">Build your professional narrative</p>
-      </div>
+  const handleReset = () => {
+    setFormData({
+      title: '',
+      company: '',
+      startDate: '',
+      endDate: '',
+      description: '',
+    });
+    setShowForm(false);
+    setEditingId(null);
+    setFeedback(null);
+  };
 
-      {!userId ? (
-        <div className="dashboard-card">
+  const formatDateRange = (startDate, endDate) => {
+    if (!startDate) return 'N/A';
+    const start = new Date(startDate).toLocaleDateString('en-US', {
+      month: 'short',
+      year: 'numeric',
+    });
+    if (!endDate) return `${start} — Present`;
+    const end = new Date(endDate).toLocaleDateString('en-US', {
+      month: 'short',
+      year: 'numeric',
+    });
+    return `${start} — ${end}`;
+  };
+
+  if (!userId) {
+    return (
+      <div className="page-container">
+        <div className="page-header">
+          <h1 className="page-title">Experience Manager</h1>
+          <p className="page-subtitle">Track and showcase your professional work history</p>
+        </div>
+        <div className="card">
           <div className="empty-state">
             <div className="empty-state-icon">👤</div>
-            <h3>Sign in to manage experiences</h3>
-            <p>
+            <div className="empty-state-title">Sign in to manage experiences</div>
+            <p className="empty-state-text">
               Add your work history to build a comprehensive career profile.
             </p>
           </div>
         </div>
-      ) : (
-        <>
-          <div className="dashboard-card experience-form-card">
-            <h3>{isExpanded ? 'Add New Experience' : 'Add Experience'}</h3>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page-container">
+      <div className="page-header">
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%' }}>
+          <div>
+            <h1 className="page-title">Experience Manager</h1>
+            <p className="page-subtitle">Build your professional narrative</p>
+          </div>
+          {!showForm && (
             <button
               type="button"
-              className="btn-expand"
-              onClick={() => setIsExpanded(!isExpanded)}
+              className="btn btn-primary btn-lg"
+              onClick={() => setShowForm(true)}
+              style={{ whiteSpace: 'nowrap' }}
             >
-              {isExpanded ? '−' : '+'}
+              + Add Experience
             </button>
+          )}
+        </div>
+      </div>
 
-            {isExpanded && (
-              <form onSubmit={handleSubmit} className="modern-form">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="title">Job Title</label>
-                    <input
-                      id="title"
-                      name="title"
-                      type="text"
-                      placeholder="e.g. Software Engineer"
-                      value={formData.title}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="company">Company</label>
-                    <input
-                      id="company"
-                      name="company"
-                      type="text"
-                      placeholder="e.g. Acme Corp"
-                      value={formData.company}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="startDate">Start Date</label>
-                    <input
-                      id="startDate"
-                      name="startDate"
-                      type="date"
-                      value={formData.startDate}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="endDate">End Date</label>
-                    <input
-                      id="endDate"
-                      name="endDate"
-                      type="date"
-                      value={formData.endDate}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="description">Description</label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    placeholder="Describe your responsibilities and achievements..."
-                    value={formData.description}
-                    onChange={handleChange}
-                    rows={4}
-                    required
-                  />
-                </div>
-                <div className="form-actions">
-                  <button type="submit" className="btn btn-primary">
-                    Add Experience
-                  </button>
-                </div>
-              </form>
-            )}
+      {feedback && (
+        <div className={`alert alert-${feedback.type} mb-6`}>
+          {feedback.message}
+        </div>
+      )}
+
+      {showForm && (
+        <div className="card mb-6">
+          <div className="card-header" style={{ marginBottom: 'var(--space-6)' }}>
+            <h3 className="card-title">Add New Experience</h3>
           </div>
 
-          {feedback && (
-            <div
-              className={`alert ${feedback.includes('saved') ? 'alert-success' : 'alert-error'}`}
-            >
-              {feedback}
-            </div>
-          )}
-
-          {experiences.length > 0 ? (
-            <div className="dashboard-card">
-              <h3>Your Experiences</h3>
-              <ul className="experience-list">
-                {experiences.map(exp => (
-                  <li key={exp.experienceId} className="experience-item">
-                    <div className="experience-header">
-                      <h4>{exp.title}</h4>
-                      <span className="experience-dates">
-                        {exp.startDate} — {exp.endDate || 'Present'}
-                      </span>
-                    </div>
-                    <p className="experience-company">{exp.company}</p>
-                    <p className="experience-description">{exp.description}</p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            <div className="dashboard-card">
-              <div className="empty-state">
-                <div className="empty-state-icon">💼</div>
-                <h3>No experiences yet</h3>
-                <p>Add your first work experience to get started.</p>
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+              <div className="form-group">
+                <label className="form-label">Job Title *</label>
+                <input
+                  name="title"
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. Software Engineer"
+                  value={formData.title}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Company *</label>
+                <input
+                  name="company"
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. Acme Corp"
+                  value={formData.company}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                />
               </div>
             </div>
-          )}
-        </>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+              <div className="form-group">
+                <label className="form-label">Start Date *</label>
+                <input
+                  name="startDate"
+                  type="date"
+                  className="form-input"
+                  value={formData.startDate}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">End Date</label>
+                <input
+                  name="endDate"
+                  type="date"
+                  className="form-input"
+                  value={formData.endDate}
+                  onChange={handleChange}
+                  disabled={loading}
+                />
+                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: 'var(--space-2)' }}>
+                  Leave blank for current position
+                </p>
+              </div>
+            </div>
+
+            <div className="form-group mb-6">
+              <label className="form-label">Description *</label>
+              <textarea
+                name="description"
+                className="form-input form-textarea"
+                placeholder="Describe your responsibilities and achievements..."
+                value={formData.description}
+                onChange={handleChange}
+                required
+                disabled={loading}
+                rows={4}
+                style={{ fontFamily: 'inherit', resize: 'vertical' }}
+              />
+            </div>
+
+            <div className="flex gap-4" style={{ justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleReset}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary btn-lg"
+                disabled={loading}
+              >
+                {loading ? 'Saving...' : 'Add Experience'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {experiences.length > 0 ? (
+        <div>
+          <div style={{ marginBottom: 'var(--space-6)' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: 'var(--space-4)' }}>
+              Your Experiences ({experiences.length})
+            </h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--space-4)' }}>
+            {experiences.map(exp => (
+              <div key={exp.experienceId} className="card" style={{ position: 'relative' }}>
+                <div className="card-header">
+                  <div>
+                    <h3 className="card-title" style={{ fontSize: '1.125rem', marginBottom: 'var(--space-1)' }}>
+                      {exp.title}
+                    </h3>
+                    <p style={{ color: 'var(--color-text-secondary)', fontWeight: 500, margin: 0 }}>
+                      {exp.company}
+                    </p>
+                  </div>
+                  <span className="badge badge-primary">
+                    {formatDateRange(exp.startDate, exp.endDate)}
+                  </span>
+                </div>
+
+                <p style={{
+                  color: 'var(--color-text-secondary)',
+                  marginTop: 'var(--space-4)',
+                  marginBottom: 'var(--space-4)',
+                  lineHeight: 1.6,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                }}>
+                  {exp.description}
+                </p>
+
+                <div className="flex gap-2" style={{ justifyContent: 'flex-end', borderTop: '1px solid var(--color-gray-100)', paddingTop: 'var(--space-4)' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => {
+                      setFormData({
+                        title: exp.title,
+                        company: exp.company,
+                        startDate: exp.startDate,
+                        endDate: exp.endDate || '',
+                        description: exp.description,
+                      });
+                      setEditingId(exp.experienceId);
+                      setShowForm(true);
+                    }}
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="card">
+          <div className="empty-state">
+            <div className="empty-state-icon">💼</div>
+            <div className="empty-state-title">No experiences yet</div>
+            <p className="empty-state-text">
+              Add your first work experience to get started building your professional profile.
+            </p>
+            {!showForm && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setShowForm(true)}
+              >
+                Add Your First Experience
+              </button>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

@@ -11,7 +11,7 @@ A comprehensive career management platform built as a monorepo with serverless A
 ## 📊 Project Status
 
 ✅ **Backend**: 19 Lambda functions covering users, jobs, experiences, applications, resumes, search, analytics, and application state management
-✅ **Web App**: Full React application deployed to AWS S3 with Cognito auth
+✅ **Web App**: Full React application deployed to AWS S3 with Cognito auth — **complete design system redesign**
 ✅ **Mobile App**: React Native app with cross-platform support and offline sync
 ✅ **Infrastructure**: AWS CDK stack with DynamoDB, Cognito, S3 + configured CORS
 ✅ **Testing**: 63 unit tests with AWS SDK v3 mocking (Mocha + Chai + aws-sdk-client-mock)
@@ -22,15 +22,30 @@ A comprehensive career management platform built as a monorepo with serverless A
 ✅ **Profile Settings**: Preferred name, location, and job role preferences with persistent storage
 ✅ **Job Search**: Adzuna/Seek integration (NZ/AU), debounced auto-search, profile pre-fill
 ✅ **Application State Machine**: SAVED (bookmarked) vs APPLIED (submitted) with one-way transitions
-✅ **Release**: v0.0.5 published and production-ready
+✅ **UI/UX**: Modern, consistent design system across all pages — grid layouts, CSS variables, accessibility
+✅ **Release**: v0.0.6 published with complete frontend redesign
 
-**🎉 Officially released as v0.0.5 - SAVED/APPLIED job state system live!**
+**🎉 Officially released as v0.0.6 - Complete Frontend Design Overhaul!**
 
 #### 🌐 Live Demo
 - **Web App**: http://careerhelper-web-dev-1765124463.s3-website-us-east-1.amazonaws.com
 - **API**: https://lm5lnut0n5.execute-api.us-east-1.amazonaws.com
 
 ## 📦 Latest Release
+
+### [v0.0.6](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.6) - Complete Frontend Design Overhaul
+
+**Released**: March 30, 2026
+
+#### 🎉 Highlights
+- **Unified Design System**: All 8 page components redesigned with consistent `.page-container` → `.page-header` → `.card` hierarchy
+- **Modern Grid Layouts**: 2-column responsive grids for forms (title/company, dates, job fields); single-column fallback on mobile
+- **CSS Variables Everywhere**: Removed 180+ lines of inline styles from ResumeTailor; all spacing (`--space-*`), colors (`--color-*`), borders (`--radius`), typography now centralized
+- **Improved Analytics Page**: Loading spinner, error states, styled data table
+- **Enhanced Resume Manager**: Dashed border upload zone, emoji icons, clean resume list cards
+- **Better JobSearch**: 2-column search form, full-width find button
+- **Consistent Empty States**: Icon + title + text + actionable buttons across all pages
+- **Accessibility**: Proper form labels, disabled states, loading indicators throughout
 
 ### [v0.0.5](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.5) - SAVED vs APPLIED Job State Distinction
 
