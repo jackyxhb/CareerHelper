@@ -33,10 +33,30 @@ export const handler = async (event: APIGatewayProxyEvent) => {
 
   try {
     const result = await dynamodb.send(new QueryCommand(params));
+
+    // Deduplicate applications by (jobTitle, jobCompany, jobLocation)
+    // Keep the most recent application for each unique job
+    const deduped = new Map<
+      string,
+      Record<string, any>
+    >();
+
+    (result.Items || []).forEach(app => {
+      const key = `${app.jobTitle || ''}|${app.jobCompany || ''}|${app.jobLocation || ''}`;
+      const existing = deduped.get(key);
+
+      if (!existing || (app.appliedAt > existing.appliedAt)) {
+        deduped.set(key, app);
+      }
+    });
+
+    const dedupedItems = Array.from(deduped.values());
+
     logger.info('Applications retrieved successfully', {
       items: result.Items?.length || 0,
+      dedupedItems: dedupedItems.length,
     });
-    return ErrorHandler.createSuccessResponse(result.Items || []);
+    return ErrorHandler.createSuccessResponse(dedupedItems);
   } catch (error: any) {
     logger.error('Failed to retrieve applications', {}, error);
     return ErrorHandler.createErrorResponse(error, {
