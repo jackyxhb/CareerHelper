@@ -162,6 +162,7 @@ function ResumeManager({ user }) {
             onChange={handleUpload}
             disabled={uploading}
             id="resume-upload-input"
+            aria-label="Upload resume"
             style={{ display: 'none' }}
           />
           <label

@@ -49,6 +49,8 @@ describe('Dashboard', () => {
           {
             applicationId: 'app-1',
             jobId: 'job-2',
+            jobTitle: 'Backend Engineer',
+            jobCompany: 'Data Inc',
             status: 'APPLIED',
           },
         ]);
@@ -84,8 +86,8 @@ describe('Dashboard', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Designer/)).toBeInTheDocument();
-      expect(screen.getByText(/Application #app-1/)).toBeInTheDocument();
-      expect(screen.getByText(/Active Jobs/i)).toBeInTheDocument();
+      expect(screen.getByText(/Backend Engineer/)).toBeInTheDocument();
+      expect(screen.getByText(/Job Opportunities/i)).toBeInTheDocument();
       expect(screen.getAllByText(/Interview Rate/i).length).toBeGreaterThan(0);
     });
   });

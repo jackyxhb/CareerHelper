@@ -73,7 +73,7 @@ describe('ResumeManager', () => {
 
     API.del.mockResolvedValue({ success: true });
 
-    fireEvent.click(screen.getAllByText('Delete')[0]);
+    fireEvent.click(screen.getAllByText(/Delete/i)[0]);
 
     await waitFor(() =>
       expect(API.del).toHaveBeenCalledWith(
