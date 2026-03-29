@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { API } from 'aws-amplify';
 import { logError, logInfo } from '../utils/logger';
+import { COUNTRIES, CITIES_BY_COUNTRY } from '../data/locations';
 
 const SUGGESTED_ROLES = [
   'Software Engineer',
@@ -35,6 +36,13 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
     setCountry(profile.country || '');
     setJobPreferences(profile.jobPreferences || []);
   }, [profile]);
+
+  const handleCountryChange = useCallback(e => {
+    setCountry(e.target.value);
+    setCity(''); // reset city when country changes
+  }, []);
+
+  const availableCities = country ? CITIES_BY_COUNTRY[country] || [] : [];
 
   const addRole = useCallback(() => {
     const trimmed = roleInput.trim();
@@ -84,17 +92,34 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
       logInfo('Profile updated', { userId });
 
       if (onProfileUpdated) {
-        onProfileUpdated({ ...profile, preferredName, city, country, jobPreferences });
+        onProfileUpdated({
+          ...profile,
+          preferredName,
+          city,
+          country,
+          jobPreferences,
+        });
       }
 
       setFeedback({ type: 'success', message: 'Profile saved successfully.' });
     } catch (error) {
       logError('Failed to save profile', error, { userId });
-      setFeedback({ type: 'error', message: 'Could not save profile. Please try again.' });
+      setFeedback({
+        type: 'error',
+        message: 'Could not save profile. Please try again.',
+      });
     } finally {
       setIsSaving(false);
     }
-  }, [user, profile, preferredName, city, country, jobPreferences, onProfileUpdated]);
+  }, [
+    user,
+    profile,
+    preferredName,
+    city,
+    country,
+    jobPreferences,
+    onProfileUpdated,
+  ]);
 
   if (!profile) {
     return (
@@ -107,7 +132,9 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
     );
   }
 
-  const unusedSuggestions = SUGGESTED_ROLES.filter(r => !jobPreferences.includes(r));
+  const unusedSuggestions = SUGGESTED_ROLES.filter(
+    r => !jobPreferences.includes(r)
+  );
 
   return (
     <div className="page-container">
@@ -119,7 +146,9 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
       </div>
 
       {feedback && (
-        <div className={`alert alert-${feedback.type} mb-6`}>{feedback.message}</div>
+        <div className={`alert alert-${feedback.type} mb-6`}>
+          {feedback.message}
+        </div>
       )}
 
       <div className="card mb-6">
@@ -134,7 +163,10 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
             className="form-input"
             value={profile.name || ''}
             disabled
-            style={{ backgroundColor: 'var(--color-bg)', cursor: 'not-allowed' }}
+            style={{
+              backgroundColor: 'var(--color-bg)',
+              cursor: 'not-allowed',
+            }}
           />
           <p className="text-sm text-muted" style={{ marginTop: '0.25rem' }}>
             Managed by your sign-in provider.
@@ -155,26 +187,37 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
 
         <div className="flex gap-4" style={{ flexWrap: 'wrap' }}>
           <div className="form-group" style={{ flex: 1 }}>
-            <label className="form-label">City</label>
-            <input
-              type="text"
+            <label className="form-label">Country</label>
+            <select
               className="form-input"
-              placeholder="Auckland, San Francisco…"
-              value={city}
-              onChange={e => setCity(e.target.value)}
-              maxLength={100}
-            />
+              value={country}
+              onChange={handleCountryChange}
+            >
+              <option value="">— Select country —</option>
+              {COUNTRIES.map(c => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="form-group" style={{ flex: 1 }}>
-            <label className="form-label">Country</label>
-            <input
-              type="text"
+            <label className="form-label">City</label>
+            <select
               className="form-input"
-              placeholder="New Zealand, United States…"
-              value={country}
-              onChange={e => setCountry(e.target.value)}
-              maxLength={100}
-            />
+              value={city}
+              onChange={e => setCity(e.target.value)}
+              disabled={!country}
+            >
+              <option value="">
+                {country ? '— Select city —' : '— Select country first —'}
+              </option>
+              {availableCities.map(c => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
@@ -193,7 +236,11 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
               <span
                 key={role}
                 className="badge badge-primary"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                }}
               >
                 {role}
                 <button
@@ -217,7 +264,10 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
           </div>
         )}
 
-        <div className="flex gap-2" style={{ alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <div
+          className="flex gap-2"
+          style={{ alignItems: 'flex-end', flexWrap: 'wrap' }}
+        >
           <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
             <label className="form-label">Add a role</label>
             <input
@@ -242,7 +292,10 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
 
         {unusedSuggestions.length > 0 && (
           <div style={{ marginTop: '1rem' }}>
-            <p className="text-sm text-muted" style={{ marginBottom: '0.5rem' }}>
+            <p
+              className="text-sm text-muted"
+              style={{ marginBottom: '0.5rem' }}
+            >
               Common roles:
             </p>
             <div className="flex gap-2" style={{ flexWrap: 'wrap' }}>
@@ -251,7 +304,10 @@ function ProfileSettings({ user, profile, onProfileUpdated }) {
                   key={role}
                   type="button"
                   className="badge badge-neutral"
-                  style={{ cursor: 'pointer', border: '1px dashed var(--color-border)' }}
+                  style={{
+                    cursor: 'pointer',
+                    border: '1px dashed var(--color-border)',
+                  }}
                   onClick={() => addSuggested(role)}
                 >
                   + {role}

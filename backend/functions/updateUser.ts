@@ -1,5 +1,9 @@
 import DynamoDBUtil from '../utils/dynamodb';
-import { ErrorHandler, NotFoundError, ValidationError } from '../utils/errorHandler';
+import {
+  ErrorHandler,
+  NotFoundError,
+  ValidationError,
+} from '../utils/errorHandler';
 import { RequestHandler } from '../utils/requestHandler';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 
@@ -19,7 +23,10 @@ export const handler = requestHandler.createResponse(
     }>(event);
 
     // Validate field types
-    if (body.preferredName !== undefined && typeof body.preferredName !== 'string') {
+    if (
+      body.preferredName !== undefined &&
+      typeof body.preferredName !== 'string'
+    ) {
       throw new ValidationError('preferredName must be a string');
     }
     if (body.city !== undefined && typeof body.city !== 'string') {
@@ -28,7 +35,10 @@ export const handler = requestHandler.createResponse(
     if (body.country !== undefined && typeof body.country !== 'string') {
       throw new ValidationError('country must be a string');
     }
-    if (body.jobPreferences !== undefined && !Array.isArray(body.jobPreferences)) {
+    if (
+      body.jobPreferences !== undefined &&
+      !Array.isArray(body.jobPreferences)
+    ) {
       throw new ValidationError('jobPreferences must be an array');
     }
 
@@ -39,11 +49,15 @@ export const handler = requestHandler.createResponse(
     }
 
     // Build UpdateExpression from provided fields
-    const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() };
-    if (body.preferredName !== undefined) updates.preferredName = body.preferredName;
+    const updates: Record<string, unknown> = {
+      updatedAt: new Date().toISOString(),
+    };
+    if (body.preferredName !== undefined)
+      updates.preferredName = body.preferredName;
     if (body.city !== undefined) updates.city = body.city;
     if (body.country !== undefined) updates.country = body.country;
-    if (body.jobPreferences !== undefined) updates.jobPreferences = body.jobPreferences;
+    if (body.jobPreferences !== undefined)
+      updates.jobPreferences = body.jobPreferences;
 
     const setExpressions: string[] = [];
     const ExpressionAttributeNames: Record<string, string> = {};
@@ -62,6 +76,9 @@ export const handler = requestHandler.createResponse(
       ExpressionAttributeValues,
     });
 
-    return ErrorHandler.createSuccessResponse({ message: 'Profile updated', userId });
+    return ErrorHandler.createSuccessResponse({
+      message: 'Profile updated',
+      userId,
+    });
   }
 );

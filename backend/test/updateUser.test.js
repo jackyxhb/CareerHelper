@@ -1,12 +1,20 @@
 const { expect } = require('chai');
 const { mockClient } = require('aws-sdk-client-mock');
-const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
+const {
+  DynamoDBDocumentClient,
+  GetCommand,
+  UpdateCommand,
+} = require('@aws-sdk/lib-dynamodb');
 
 const updateUser = require('../functions/updateUser');
 
 const dynamoMock = mockClient(DynamoDBDocumentClient);
 
-const existingUser = { userId: '123', email: 'test@example.com', name: 'Test User' };
+const existingUser = {
+  userId: '123',
+  email: 'test@example.com',
+  name: 'Test User',
+};
 
 describe('updateUser', () => {
   before(() => {

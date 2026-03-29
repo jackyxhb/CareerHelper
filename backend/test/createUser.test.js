@@ -1,6 +1,10 @@
 const { expect } = require('chai');
 const { mockClient } = require('aws-sdk-client-mock');
-const { DynamoDBDocumentClient, GetCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+} = require('@aws-sdk/lib-dynamodb');
 
 const createUser = require('../functions/createUser');
 
@@ -35,7 +39,9 @@ describe('createUser', () => {
     const result = await createUser.handler(event);
 
     expect(result.statusCode).to.equal(201);
-    expect(JSON.parse(result.body).message).to.equal('User created successfully');
+    expect(JSON.parse(result.body).message).to.equal(
+      'User created successfully'
+    );
   });
 
   it('should return 409 when user already exists', async () => {
