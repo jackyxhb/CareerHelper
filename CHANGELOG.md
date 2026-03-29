@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.0.8] - 2026-03-30
+
+### Fixed
+- **Code Formatting**: Fixed 110+ Prettier formatting errors across 3 files via `yarn lint:fix`
+  - `web/src/components/ResumeTailor.js`: Fixed inline style object formatting for score circle, keywords section, suggestions, and section-by-section analysis
+  - `web/src/components/ResumeManager.js`: Fixed style prop formatting across upload zone and resume list items
+  - `web/src/components/__tests__/ApplicationTracker.test.js`: Fixed mock object formatting
+
+### Result
+- **Linting**: 0 formatting errors (110 Prettier violations → 0 errors via automatic fix)
+- **Code Quality**: All 71 tests still passing (100% coverage)
+- **CI/CD**: Full pipeline passing (test 1m37s, deploy-web 1m23s, deploy-backend 54s)
+- **Consistency**: Codebase fully compliant with Prettier standards
+
 ## [0.0.7] - 2026-03-30
 
 ### Fixed
