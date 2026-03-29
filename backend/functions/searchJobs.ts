@@ -95,7 +95,7 @@ export const normalizeJSearchJob = (job: JSearchJobRaw): NormalizedJob => ({
   publishedAt: job.job_posted_at_datetime_utc || null,
   salary:
     job.job_salary_currency && (job.job_min_salary || job.job_max_salary)
-      ? `${job.job_salary_currency} ${job.job_min_salary ?? ""}\u2013${job.job_max_salary ?? ""}`.trim()
+      ? `${job.job_salary_currency} ${job.job_min_salary ?? ''}\u2013${job.job_max_salary ?? ''}`.trim()
       : null,
   source: 'JSearch',
 });
@@ -185,7 +185,9 @@ export async function fetchJSearch(
   }
 
   const payload = (await response.json()) as JSearchResponse;
-  return Array.isArray(payload?.data) ? payload.data.map(normalizeJSearchJob) : [];
+  return Array.isArray(payload?.data)
+    ? payload.data.map(normalizeJSearchJob)
+    : [];
 }
 
 export async function fetchAdzuna(
@@ -273,17 +275,22 @@ export const handler = requestHandler.createResponse(
     logger.info('Starting job search', {
       query,
       location,
-      providers: ['JSearch', ...(adzunaCreds ? [`Adzuna/${adzunaCountry}`] : [])],
+      providers: [
+        'JSearch',
+        ...(adzunaCreds ? [`Adzuna/${adzunaCountry}`] : []),
+      ],
     });
 
     // Run JSearch + Adzuna in parallel; track provider failures for response metadata
     let jSearchFailed = false;
     const [jSearchJobs, adzunaJobs] = await Promise.all([
-      fetchJSearch(query, location || undefined, jSearchKey, logger).catch(err => {
-        jSearchFailed = true;
-        logger.error('JSearch provider failed', { query, location }, err);
-        return [] as NormalizedJob[];
-      }),
+      fetchJSearch(query, location || undefined, jSearchKey, logger).catch(
+        err => {
+          jSearchFailed = true;
+          logger.error('JSearch provider failed', { query, location }, err);
+          return [] as NormalizedJob[];
+        }
+      ),
       adzunaCreds && adzunaCountry
         ? fetchAdzuna(
             adzunaCountry,
@@ -305,12 +312,16 @@ export const handler = requestHandler.createResponse(
         'Zero results with location filter, retrying JSearch with location in query',
         { query, location }
       );
-      const retryQuery = `${sanitizeForRetry(query)} ${sanitizeForRetry(location)}`
-        .trim()
-        .slice(0, MAX_RETRY_QUERY_LENGTH);
-      const retryJobs = await fetchJSearch(retryQuery, undefined, jSearchKey, logger).catch(
-        () => []
-      );
+      const retryQuery =
+        `${sanitizeForRetry(query)} ${sanitizeForRetry(location)}`
+          .trim()
+          .slice(0, MAX_RETRY_QUERY_LENGTH);
+      const retryJobs = await fetchJSearch(
+        retryQuery,
+        undefined,
+        jSearchKey,
+        logger
+      ).catch(() => []);
       jobs = deduplicateJobs(retryJobs);
     }
 
@@ -330,7 +341,10 @@ export const handler = requestHandler.createResponse(
     });
 
     return ErrorHandler.createSuccessResponse({
-      providers: ['JSearch', ...(adzunaCreds ? [`Adzuna/${adzunaCountry}`] : [])],
+      providers: [
+        'JSearch',
+        ...(adzunaCreds ? [`Adzuna/${adzunaCountry}`] : []),
+      ],
       query,
       location,
       jobs,

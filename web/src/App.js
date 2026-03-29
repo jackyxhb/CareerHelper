@@ -217,7 +217,10 @@ function App({ user, signOut }) {
               path="/"
               element={<Dashboard user={user} profile={profile} />}
             />
-            <Route path="/jobs" element={<JobSearch user={user} profile={profile} />} />
+            <Route
+              path="/jobs"
+              element={<JobSearch user={user} profile={profile} />}
+            />
             <Route
               path="/experiences"
               element={<ExperienceManager user={user} />}

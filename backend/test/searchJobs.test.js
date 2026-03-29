@@ -17,9 +17,22 @@ const {
   normalizeAdzunaJob,
 } = proxyquire('../functions/searchJobs', {
   '../utils/secrets': { secretsManager: {} },
-  '../utils/logger': class { info() {} warn() {} error() {} },
-  '../utils/errorHandler': { ErrorHandler: {}, ValidationError: class extends Error {} },
-  '../utils/requestHandler': { RequestHandler: class { createResponse(fn) { return fn; } } },
+  '../utils/logger': class {
+    info() {}
+    warn() {}
+    error() {}
+  },
+  '../utils/errorHandler': {
+    ErrorHandler: {},
+    ValidationError: class extends Error {},
+  },
+  '../utils/requestHandler': {
+    RequestHandler: class {
+      createResponse(fn) {
+        return fn;
+      }
+    },
+  },
   'aws-lambda': {},
 });
 
@@ -202,7 +215,7 @@ describe('searchJobs handler', () => {
     sinon.stub(secretsManager, 'getAdzunaCredentials').resolves(adzunaCreds);
   };
 
-  const stubFetch = (data) =>
+  const stubFetch = data =>
     sinon.stub(global, 'fetch').resolves({
       ok: true,
       json: () => Promise.resolve(data),
@@ -220,7 +233,16 @@ describe('searchJobs handler', () => {
 
   it('returns JSearch results for a plain query', async () => {
     stubSecrets();
-    stubFetch({ data: [{ job_id: 'j1', job_title: 'Engineer', employer_name: 'Acme', job_city: 'London' }] });
+    stubFetch({
+      data: [
+        {
+          job_id: 'j1',
+          job_title: 'Engineer',
+          employer_name: 'Acme',
+          job_city: 'London',
+        },
+      ],
+    });
 
     const resp = await handler(makeEvent('Engineer', null));
     expect(resp.statusCode).to.equal(200);
@@ -231,9 +253,33 @@ describe('searchJobs handler', () => {
 
   it('triggers Adzuna for Auckland location and merges results', async () => {
     stubSecrets('key-123', { appId: 'id', appKey: 'key' });
-    sinon.stub(global, 'fetch')
-      .onFirstCall().resolves({ ok: true, json: () => Promise.resolve({ data: [{ job_id: 'j1', job_title: 'Dev', employer_name: 'Co A' }] }), text: () => Promise.resolve('') })
-      .onSecondCall().resolves({ ok: true, json: () => Promise.resolve({ results: [{ id: 'a1', title: 'Dev', company: { display_name: 'Co B' }, location: { display_name: 'Auckland' } }] }), text: () => Promise.resolve('') });
+    sinon
+      .stub(global, 'fetch')
+      .onFirstCall()
+      .resolves({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            data: [{ job_id: 'j1', job_title: 'Dev', employer_name: 'Co A' }],
+          }),
+        text: () => Promise.resolve(''),
+      })
+      .onSecondCall()
+      .resolves({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            results: [
+              {
+                id: 'a1',
+                title: 'Dev',
+                company: { display_name: 'Co B' },
+                location: { display_name: 'Auckland' },
+              },
+            ],
+          }),
+        text: () => Promise.resolve(''),
+      });
 
     const resp = await handler(makeEvent('Dev', 'Auckland'));
     expect(resp.statusCode).to.equal(200);
@@ -244,9 +290,35 @@ describe('searchJobs handler', () => {
 
   it('deduplicates matching jobs across providers', async () => {
     stubSecrets('key-123', { appId: 'id', appKey: 'key' });
-    sinon.stub(global, 'fetch')
-      .onFirstCall().resolves({ ok: true, json: () => Promise.resolve({ data: [{ job_id: 'j1', job_title: 'Engineer', employer_name: 'Acme' }] }), text: () => Promise.resolve('') })
-      .onSecondCall().resolves({ ok: true, json: () => Promise.resolve({ results: [{ id: 'a1', title: 'Engineer', company: { display_name: 'Acme' }, location: { display_name: 'Auckland' } }] }), text: () => Promise.resolve('') });
+    sinon
+      .stub(global, 'fetch')
+      .onFirstCall()
+      .resolves({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            data: [
+              { job_id: 'j1', job_title: 'Engineer', employer_name: 'Acme' },
+            ],
+          }),
+        text: () => Promise.resolve(''),
+      })
+      .onSecondCall()
+      .resolves({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            results: [
+              {
+                id: 'a1',
+                title: 'Engineer',
+                company: { display_name: 'Acme' },
+                location: { display_name: 'Auckland' },
+              },
+            ],
+          }),
+        text: () => Promise.resolve(''),
+      });
 
     const resp = await handler(makeEvent('Engineer', 'Auckland'));
     const body = JSON.parse(resp.body);
@@ -256,9 +328,23 @@ describe('searchJobs handler', () => {
 
   it('retries JSearch without location when 0 results and no Adzuna', async () => {
     stubSecrets('key-123', null);
-    const fetchStub = sinon.stub(global, 'fetch')
-      .onFirstCall().resolves({ ok: true, json: () => Promise.resolve({ data: [] }), text: () => Promise.resolve('') })
-      .onSecondCall().resolves({ ok: true, json: () => Promise.resolve({ data: [{ job_id: 'j2', job_title: 'Dev', employer_name: 'Co' }] }), text: () => Promise.resolve('') });
+    const fetchStub = sinon
+      .stub(global, 'fetch')
+      .onFirstCall()
+      .resolves({
+        ok: true,
+        json: () => Promise.resolve({ data: [] }),
+        text: () => Promise.resolve(''),
+      })
+      .onSecondCall()
+      .resolves({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            data: [{ job_id: 'j2', job_title: 'Dev', employer_name: 'Co' }],
+          }),
+        text: () => Promise.resolve(''),
+      });
 
     const resp = await handler(makeEvent('Dev', 'Virginia'));
     const body = JSON.parse(resp.body);

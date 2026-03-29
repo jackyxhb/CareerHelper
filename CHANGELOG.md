@@ -6,12 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.0.4] - 2026-03-29
+
 ### Added
+- **User Profile Settings**: `/profile` route with `ProfileSettings` component — edit preferred display name, city/country (linked dropdowns), and job role preferences (tag-style input with one-click suggestions)
+- **`PUT /users/{userId}` — `updateUser` Lambda**: persists `preferredName`, `city`, `country`, `jobPreferences` to DynamoDB using `UpdateExpression`; validates field types; 404 if user not found; 5 new tests (success, partial update, 404, 400 invalid type, 400 missing body)
 - `backend/test/searchJobs.test.js` — 23 tests covering pure functions (`detectAdzunaCountry`, `deduplicateJobs`, `sanitizeForRetry`, `normalizeJSearchJob`, `normalizeAdzunaJob`) and handler integration (400 validation, JSearch results, Adzuna merge, dedup, retry, `providersWarning`)
 - `backend/test/secrets.test.js` — 7 tests for `SecretsManager.getAdzunaCredentials` using `aws-sdk-client-mock` (happy path, ParameterNotFound, SSM error, empty appId, stage path, caching, clearCache)
 - `backend/.mocharc.yml` — mocha glob config so `test/**/*.test.js` discovery works in non-interactive shells
 
 ### Changed
+- **Job Search pre-fill**: `JobSearch` seeds query and location fields from profile preferences on mount and on async profile arrival; functional updater ensures user-typed values are never overwritten
+- **City/country dropdowns**: `ProfileSettings` uses linked `CITIES_BY_COUNTRY` map — city resets when country changes; city selector disabled until country is chosen
 - `searchJobs.ts`: replace `any` with typed `JSearchJobRaw`, `JSearchResponse`, `AdzunaJobRaw`, `AdzunaResponse` interfaces; add `sanitizeForRetry()` to strip special chars before retry query; track `jSearchFailed` flag; expose `providersWarning` in response when all providers fail
 - `secrets.ts`: differentiate ParameterNotFound (log INFO) from unexpected SSM errors (log WARN) in `getAdzunaCredentials`
 - `backend/test/createUser.test.js`: rewrite with `aws-sdk-client-mock` on `DynamoDBDocumentClient`; fixes pre-existing failure caused by proxyquire not handling TS default exports; adds 409 conflict case
@@ -19,7 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `backend/package.json`: simplify `test`/`test:coverage` scripts to delegate spec glob to `.mocharc.yml`
 
 ### Fixed
-- N/A
+- Profile save was silently failing — `updateUser` Lambda existed in code but had never been deployed; backend redeployed (52 tests passing)
 
 ## [0.0.3] - 2026-03-29
 
@@ -72,7 +78,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - GitHub Actions CI/CD
 - Basic unit tests
 
-[Unreleased]: https://github.com/jackyxhb/CareerHelper/compare/v0.0.3...HEAD
+[Unreleased]: https://github.com/jackyxhb/CareerHelper/compare/v0.0.4...HEAD
+[0.0.4]: https://github.com/jackyxhb/CareerHelper/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/jackyxhb/CareerHelper/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.2
 [0.0.1]: https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.1
