@@ -8,12 +8,20 @@ import React, {
 import { API } from 'aws-amplify';
 import { logError, logInfo } from '../utils/logger';
 
+function profileLocation(p) {
+  return [p?.city, p?.country].filter(Boolean).join(', ');
+}
+
 function JobSearch({ user, profile }) {
   const [internalJobs, setInternalJobs] = useState([]);
   const [externalJobs, setExternalJobs] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [locationTerm, setLocationTerm] = useState('');
-  const defaultsAppliedRef = useRef(false);
+  // Lazy initialisers seed from profile if it is already loaded on mount.
+  const [searchTerm, setSearchTerm] = useState(
+    () => profile?.jobPreferences?.[0] || ''
+  );
+  const [locationTerm, setLocationTerm] = useState(() =>
+    profileLocation(profile)
+  );
   // Tracks whether the user has explicitly triggered a search (button or Enter).
   // Prevents showing "No jobs found" on first load before any search is attempted.
   const [hasSearched, setHasSearched] = useState(false);
@@ -25,17 +33,15 @@ function JobSearch({ user, profile }) {
   const externalCacheRef = useRef(new Map());
   const debounceRef = useRef(null);
 
-  // Seed search and location from profile preferences (once, non-destructively)
+  // Handle the async case: profile arrives after mount.
+  // Functional updaters (prev => prev || default) ensure we never
+  // overwrite something the user has already typed.
   useEffect(() => {
-    if (!profile || defaultsAppliedRef.current) return;
-    defaultsAppliedRef.current = true;
-    if (profile.jobPreferences?.length > 0) {
-      setSearchTerm(profile.jobPreferences[0]);
-    }
-    const loc = [profile.city, profile.country].filter(Boolean).join(', ');
-    if (loc) {
-      setLocationTerm(loc);
-    }
+    if (!profile) return;
+    const defaultSearch = profile?.jobPreferences?.[0] || '';
+    const defaultLoc = profileLocation(profile);
+    if (defaultSearch) setSearchTerm(prev => prev || defaultSearch);
+    if (defaultLoc) setLocationTerm(prev => prev || defaultLoc);
   }, [profile]);
 
   const userId = user?.username;
