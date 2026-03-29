@@ -10,18 +10,20 @@ A comprehensive career management platform built as a monorepo with serverless A
 
 ## 📊 Project Status
 
-✅ **Backend**: Complete serverless AWS implementation with 8 Lambda functions  
-✅ **Web App**: Full React application deployed to AWS S3 with Cognito auth  
-✅ **Mobile App**: React Native app with cross-platform support and offline sync  
-✅ **Infrastructure**: AWS CDK stack with DynamoDB, Cognito, S3 + configured CORS  
-✅ **Testing**: Unit tests with AWS SDK v3 mocking  
-✅ **CI/CD**: GitHub Actions workflows for automated deployment  
-✅ **Documentation**: API specs and development guidelines  
-✅ **Resume Uploads**: Cognito-protected signed URLs backed by DynamoDB metadata  
-✅ **Error Handling**: Enterprise-grade resilience with circuit breakers and structured logging  
-✅ **Release**: v0.0.2 published and production-ready  
+✅ **Backend**: 17 Lambda functions covering users, jobs, experiences, applications, resumes, search, analytics
+✅ **Web App**: Full React application deployed to AWS S3 with Cognito auth
+✅ **Mobile App**: React Native app with cross-platform support and offline sync
+✅ **Infrastructure**: AWS CDK stack with DynamoDB, Cognito, S3 + configured CORS
+✅ **Testing**: 47 unit tests with AWS SDK v3 mocking (Mocha + Chai + aws-sdk-client-mock)
+✅ **CI/CD**: GitHub Actions workflows for automated deployment
+✅ **Documentation**: API specs and development guidelines
+✅ **Resume Uploads**: Cognito-protected signed URLs backed by DynamoDB metadata
+✅ **Error Handling**: Enterprise-grade resilience with circuit breakers and structured logging
+✅ **Profile Settings**: Preferred name, location, and job role preferences with persistent storage
+✅ **Job Search**: Adzuna/Seek integration (NZ/AU), debounced auto-search, profile pre-fill
+✅ **Release**: v0.0.4 published and production-ready
 
-**🎉 Officially released as v0.0.2 - Ready for production deployment!**
+**🎉 Officially released as v0.0.4 - Ready for production deployment!**
 
 #### 🌐 Live Demo
 - **Web App**: http://careerhelper-web-dev-1765124463.s3-website-us-east-1.amazonaws.com
@@ -29,23 +31,22 @@ A comprehensive career management platform built as a monorepo with serverless A
 
 ## 📦 Latest Release
 
-### [v0.0.2](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.2) - Resume Uploads & Offline Sync
+### [v0.0.4](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.4) - User Profile & Job Search Pre-fill
 
-**Released**: December 9, 2025
+**Released**: March 29, 2026
 
 #### 🎉 Highlights
-- Resume upload pipeline with Cognito-authorized signed URLs and DynamoDB metadata
-- Web application updates for resume management, job snapshot persistence, and improved authorization headers
-- Mobile offline-first experience with Amplify DataStore sync banners and conflict handling
-- Infrastructure hardening with CDK-managed S3 CORS rules and aligned shared schema types
-- Documentation refresh covering new workflows and troubleshooting steps
+- User Profile Settings page — edit preferred name, city/country (linked dropdowns), and job role preferences (tag-style input)
+- `PUT /users/{userId}` Lambda persists profile changes to DynamoDB; profile pre-fills Job Search automatically
+- `searchJobs` fully typed with `sanitizeForRetry`, `providersWarning`, and 23 new tests (47 total)
+- Fixed: `updateUser` Lambda had never been deployed — profile saves now work correctly
 
 #### 📥 Installation Options
 ```bash
 # Install latest release
 git clone https://github.com/jackyxhb/CareerHelper.git
 cd CareerHelper
-git checkout v0.0.2
+git checkout v0.0.4
 
 # Or download from releases
 # https://github.com/jackyxhb/CareerHelper/releases/latest
@@ -54,10 +55,11 @@ git checkout v0.0.2
 ## 🌟 Features
 
 ### **Job Opportunity Management**
-- **Advanced Job Search**: Filter by location, salary, company, and keywords
-- **Personalized Recommendations**: AI-powered job matching based on experience and preferences
+- **Advanced Job Search**: Filter by location, salary, company, and keywords; debounced auto-search with 400ms delay
+- **Adzuna/Seek Integration**: NZ and AU job coverage via Adzuna API (aggregates Seek); configurable via SSM
+- **Profile Pre-fill**: Job search query and location automatically seeded from saved profile preferences
+- **Location Relevance Sorting**: Exact-location matches ranked first, remote second
 - **Save & Track**: Bookmark interesting positions and monitor application status
-- **Company Insights**: Research companies with salary data and employee reviews
 - **Resume Handoff**: Issue pre-signed upload links tied to each job application
 
 ### **Experience Management**
@@ -78,6 +80,11 @@ git checkout v0.0.2
 - **Resume Library**: Centralized view, download, and deletion of stored resumes
 - **Automatic Linking**: Latest resume key synced to the user profile for downstream workflows
 
+### **User Profile**
+- **Preferred Name**: Set a display name separate from the Cognito account name
+- **Location Preferences**: City/country linked dropdowns — city list scoped to selected country
+- **Job Role Preferences**: Tag-style input with one-click suggested roles; pre-fills Job Search automatically
+
 ### **Career Planning**
 - **Goal Setting**: Define short-term and long-term career objectives
 - **Mentorship Matching**: Connect with industry professionals
@@ -94,8 +101,8 @@ git checkout v0.0.2
 ## 🏗️ Architecture
 
 ### **Backend (Serverless AWS)**
-- **AWS Lambda**: 8 serverless functions handling all CRUD operations
-- **API Gateway**: RESTful API endpoints with proper authentication
+- **AWS Lambda**: 17 serverless functions handling all CRUD operations
+- **API Gateway**: HTTP API endpoints with CORS and optional Cognito authorizer
 - **DynamoDB**: NoSQL database with user-scoped data partitioning
 - **Cognito**: User authentication and authorization
 - **S3**: File storage for resumes and documents
@@ -267,15 +274,23 @@ Complete API documentation is available in [`docs/api.md`](docs/api.md).
 
 ### Key Endpoints
 
-- `GET /health` - Health check endpoint for monitoring
+- `GET /health` - Health check
 - `GET /users/{userId}` - Get user profile
 - `POST /users` - Create new user
+- `PUT /users/{userId}` - Update profile (preferredName, city, country, jobPreferences)
 - `GET /jobs` - List all jobs
 - `POST /jobs` - Create job posting
-- `GET /users/{userId}/experiences` - Get user experiences
+- `GET /jobs/search` - Search jobs via JSearch + Adzuna/Seek (NZ/AU)
+- `GET /experiences/{userId}` - Get user experiences
 - `POST /experiences` - Add work experience
-- `GET /users/{userId}/applications` - Get user applications
+- `GET /applications/{userId}` - Get user applications
 - `POST /applications` - Submit job application
+- `POST /uploads/resume` - Issue signed upload URL
+- `GET /uploads/resume` - List stored resumes
+- `DELETE /uploads/resume/{resumeId}` - Delete resume
+- `POST /resume/tailor` - AI resume tailoring
+- `GET /analytics` - Usage analytics
+- `POST /pmf` / `GET /pmf` - Product-market fit survey
 
 ## 🚢 Deployment
 
@@ -374,37 +389,41 @@ We welcome contributions! Please see our [Development Instructions](instructions
 
 ## 📋 Changelog
 
+### [v0.0.4](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.4) - March 29, 2026
+- 👤 **User Profile Settings**: preferred name, city/country dropdowns, job role tags — persisted via `PUT /users/{userId}`
+- 🔍 **Job Search Pre-fill**: query and location auto-seeded from saved profile preferences
+- 🌏 **Adzuna/Seek Integration**: NZ/AU job coverage via Adzuna API
+- 🧪 **Test Coverage**: 47 tests total; `searchJobs` fully typed with `sanitizeForRetry` and `providersWarning`
+- 🐛 **Fix**: `updateUser` Lambda was never deployed — profile saves now work
+
+### [v0.0.3](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.3) - March 29, 2026
+- 🌏 **Adzuna/Seek Integration**: NZ and AU job search via Adzuna API
+- ⚡ **Debounced Auto-Search**: fires after 2+ characters with 400ms debounce
+- 📍 **Location Relevance Sorting**: exact-location matches ranked first
+- 🤖 **AI Resume Tailoring**: personalized suggestions from resume + job description
+- 📊 **Analytics & Onboarding**: event tracking, 4-step onboarding flow, PMF survey
+- 🛡️ **Error Boundaries**: graceful error handling with retry
+
 ### [v0.0.2](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.2) - December 9, 2025
-- 📄 **Resume Uploads**: Cognito-secured signed URLs with DynamoDB metadata and UI integration across web/mobile
-- 📱 **Offline Sync Enhancements**: Amplify DataStore with conflict handling, queued writes, and sync status indicators
-- 🗂️ **Job Snapshot Persistence**: Applications retain job title/company/source to avoid stale listing regressions
-- 🌐 **CORS Hardening**: CDK-managed S3 bucket rules covering localhost and hosted web origins
-- 📘 **Documentation Refresh**: Updated README, troubleshooting guides, and deployment notes
+- 📄 **Resume Uploads**: Cognito-secured signed URLs with DynamoDB metadata
+- 📱 **Offline Sync**: Amplify DataStore with conflict handling and sync banners
+- 🗂️ **Job Snapshot Persistence**: applications retain job details after listings expire
+- 🌐 **CORS Hardening**: CDK-managed S3 bucket rules
 
 ### [v0.0.1](https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.1) - December 7, 2025
-- 🎉 **Initial Release**: Complete career management platform
-- 🏗️ **Full Architecture**: Serverless backend, web app, mobile app, infrastructure
-- ✅ **Production Ready**: Comprehensive testing, CI/CD, documentation
-- 🚀 **Deployment Ready**: All components configured for AWS deployment
+- 🎉 **Initial Release**: serverless backend, React web app, React Native mobile, AWS CDK, CI/CD
 
-#### Recent Enhancements (December 8, 2025)
-- 🛡️ **Error Handling & Resilience**: Enterprise-grade fault tolerance implementation
-- 🔄 **Circuit Breaker Pattern**: Automatic failure detection and recovery for DynamoDB operations
-- 📊 **Structured Logging**: JSON-formatted logs with request tracking and performance metrics
-- ✅ **Input Validation**: Schema-based validation with comprehensive error messages
-- 🔄 **Retry Logic**: Adaptive retry strategies for AWS SDK calls
-- 🏗️ **Utility Classes**: Logger, ErrorHandler, RequestHandler, and DynamoDBUtil for consistent operations
-
-See [Releases](https://github.com/jackyxhb/CareerHelper/releases) for full changelog.
+See [CHANGELOG.md](CHANGELOG.md) for the full history.
 
 ## 🚀 Roadmap
 
-### In Development (v0.1.0)
+### Shipped
 - [x] **AI Resume Tailoring** - Personalized resume suggestions based on job descriptions
 - [x] **Analytics & Monitoring** - Event tracking and error boundaries
 - [x] **Onboarding Flow** - Guided first-time user experience
 - [x] **PMF Survey** - Product-market fit measurement
-- [x] **Beta Distribution** - TestFlight and Play Store beta guides
+- [x] **User Profile Settings** - Preferred name, location, and job role preferences
+- [x] **Adzuna/Seek Integration** - NZ/AU job search coverage
 
 ### Planned Features
 - [ ] LinkedIn integration for network building
@@ -432,7 +451,7 @@ gh release list
 
 # Update to latest version
 git fetch --tags
-git checkout v0.0.2  # Replace with latest version
+git checkout v0.0.4  # Replace with latest version
 ```
 
 ## 📄 License
@@ -464,4 +483,4 @@ This project is licensed under the MIT License.
 
 **Built with ❤️ for job seekers and career professionals worldwide**
 
-**🎉 Officially released as v0.0.2 - Start your career journey today!**
+**🎉 Officially released as v0.0.4 - Start your career journey today!**
