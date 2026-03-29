@@ -178,16 +178,16 @@ function App({ user, signOut }) {
               Jobs
             </NavLink>
             <NavLink
-              to="/experiences"
-              className={({ isActive }) => (isActive ? 'active' : '')}
-            >
-              Experiences
-            </NavLink>
-            <NavLink
               to="/applications"
               className={({ isActive }) => (isActive ? 'active' : '')}
             >
               Applications
+            </NavLink>
+            <NavLink
+              to="/experiences"
+              className={({ isActive }) => (isActive ? 'active' : '')}
+            >
+              Experiences
             </NavLink>
             <NavLink
               to="/resume-tailor"
@@ -221,12 +221,12 @@ function App({ user, signOut }) {
               element={<JobSearch user={user} profile={profile} />}
             />
             <Route
-              path="/experiences"
-              element={<ExperienceManager user={user} />}
-            />
-            <Route
               path="/applications"
               element={<ApplicationTracker user={user} />}
+            />
+            <Route
+              path="/experiences"
+              element={<ExperienceManager user={user} />}
             />
             <Route path="/analytics" element={<AnalyticsPage user={user} />} />
             <Route path="/resumes" element={<ResumeManager user={user} />} />
