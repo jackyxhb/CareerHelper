@@ -324,6 +324,7 @@ export const ValidationSchemas: Record<string, ValidationSchema> = {
       required: true,
       validate: (value: any) => {
         const validStatuses = [
+          'SAVED',
           'APPLIED',
           'INTERVIEWING',
           'OFFERED',

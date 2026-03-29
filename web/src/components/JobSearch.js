@@ -12,6 +12,10 @@ function profileLocation(p) {
   return [p?.city, p?.country].filter(Boolean).join(', ');
 }
 
+function naturalKey(job) {
+  return `${job.title || job.job_title || ''}|${job.company || job.employer_name || ''}|${job.location || job.job_city || ''}`;
+}
+
 function JobSearch({ user, profile }) {
   const [internalJobs, setInternalJobs] = useState([]);
   const [externalJobs, setExternalJobs] = useState([]);
@@ -29,6 +33,8 @@ function JobSearch({ user, profile }) {
   const [feedback, setFeedback] = useState(null);
   const [externalError, setExternalError] = useState(null);
   const [isExternalLoading, setIsExternalLoading] = useState(false);
+  const [savedAppsMap, setSavedAppsMap] = useState(new Map());
+  const [unsavingJobKey, setUnsavingJobKey] = useState(null);
 
   const externalCacheRef = useRef(new Map());
   const debounceRef = useRef(null);
@@ -60,9 +66,26 @@ function JobSearch({ user, profile }) {
     }
   }, []);
 
+  const fetchApplications = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const apps = await API.get('CareerHelperAPI', `/applications/${userId}`);
+      const map = new Map();
+      (apps || []).forEach(app => {
+        const key = `${app.jobTitle || ''}|${app.jobCompany || ''}|${app.jobLocation || ''}`;
+        map.set(key, { applicationId: app.applicationId, status: app.status });
+      });
+      setSavedAppsMap(map);
+      logInfo('Applications fetched', { items: map.size });
+    } catch (error) {
+      logError('Failed to fetch applications', error);
+    }
+  }, [userId]);
+
   useEffect(() => {
     fetchJobs();
-  }, [fetchJobs]);
+    fetchApplications();
+  }, [fetchJobs, fetchApplications]);
 
   const runExternalSearch = useCallback(async (query, location) => {
     const trimmedQuery = query.trim();
@@ -144,11 +167,19 @@ function JobSearch({ user, profile }) {
     [handleSearch]
   );
 
-  const handleApply = async job => {
+  const getJobState = useCallback(
+    job => {
+      const key = naturalKey(job);
+      return savedAppsMap.get(key);
+    },
+    [savedAppsMap]
+  );
+
+  const handleSave = async job => {
     if (!userId) {
       setFeedback({
         type: 'error',
-        message: 'You need to be signed in to apply.',
+        message: 'You need to be signed in to save jobs.',
       });
       return;
     }
@@ -161,37 +192,80 @@ function JobSearch({ user, profile }) {
         body: {
           userId,
           jobId: job.jobId,
-          status: 'APPLIED',
-          notes: '',
-          jobTitle: job.title,
-          jobCompany: job.company,
-          jobLocation: job.location,
+          status: 'SAVED',
+          jobTitle: job.title || job.job_title,
+          jobCompany: job.company || job.employer_name,
+          jobLocation: job.location || job.job_city,
           jobSource: job.source,
         },
       });
 
+      const key = naturalKey(job);
+      setSavedAppsMap(prev =>
+        new Map(prev).set(key, { applicationId: job.jobId, status: 'SAVED' })
+      );
+
       setFeedback({
         type: 'success',
-        message:
-          job.source === 'Internal'
-            ? `Application submitted for ${job.title}!`
-            : `Saved ${job.title} to your tracker.`,
+        message: `Saved ${job.title || job.job_title} to your tracker.`,
       });
-      logInfo('Application submitted from job search', {
+      logInfo('Job saved from search', {
         jobId: job.jobId,
         userId,
       });
     } catch (error) {
       setFeedback({
         type: 'error',
-        message: 'Could not submit application. Please try again.',
+        message: 'Could not save job. Please try again.',
       });
-      logError('Failed to submit application from job search', error, {
+      logError('Failed to save job from search', error, {
         jobId: job.jobId,
         userId,
       });
     } finally {
       setSubmittingJobId(null);
+    }
+  };
+
+  const handleUnsave = async job => {
+    const key = naturalKey(job);
+    const appData = savedAppsMap.get(key);
+    if (!appData) return;
+
+    setUnsavingJobKey(key);
+    setFeedback(null);
+
+    try {
+      await API.del(
+        'CareerHelperAPI',
+        `/applications/${userId}/${appData.applicationId}`
+      );
+
+      setSavedAppsMap(prev => {
+        const next = new Map(prev);
+        next.delete(key);
+        return next;
+      });
+
+      setFeedback({
+        type: 'success',
+        message: `Removed ${job.title || job.job_title} from saved jobs.`,
+      });
+      logInfo('Job unsaved from search', {
+        jobId: job.jobId,
+        userId,
+      });
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message: 'Could not unsave job. Please try again.',
+      });
+      logError('Failed to unsave job from search', error, {
+        jobId: job.jobId,
+        userId,
+      });
+    } finally {
+      setUnsavingJobKey(null);
     }
   };
 
@@ -402,18 +476,47 @@ function JobSearch({ user, profile }) {
                     View Listing ↗
                   </a>
                 )}
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={() => handleApply(job)}
-                  disabled={!userId || submittingJobId === job.jobId}
-                >
-                  {submittingJobId === job.jobId
-                    ? 'Submitting...'
-                    : job.source === 'Internal'
-                      ? 'Apply Now'
-                      : 'Save to Tracker'}
-                </button>
+                {(() => {
+                  const state = getJobState(job);
+                  if (
+                    state?.status === 'APPLIED' ||
+                    [
+                      'INTERVIEWING',
+                      'OFFERED',
+                      'REJECTED',
+                      'WITHDRAWN',
+                    ].includes(state?.status)
+                  ) {
+                    return <span className="badge-neutral">✓ Applied</span>;
+                  }
+                  if (state?.status === 'SAVED') {
+                    return (
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <span className="badge-neutral">✓ Saved</span>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => handleUnsave(job)}
+                          disabled={unsavingJobKey === naturalKey(job)}
+                        >
+                          {unsavingJobKey === naturalKey(job)
+                            ? 'Removing...'
+                            : 'Unsave'}
+                        </button>
+                      </div>
+                    );
+                  }
+                  return (
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={() => handleSave(job)}
+                      disabled={!userId || submittingJobId === job.jobId}
+                    >
+                      {submittingJobId === job.jobId ? 'Saving...' : 'Save'}
+                    </button>
+                  );
+                })()}
               </div>
             </div>
           ))}

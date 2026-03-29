@@ -16,6 +16,7 @@ provider:
       allowedOrigins:
         - http://localhost:3000
         - https://careerhelper-web-dev-1765124463.s3.us-east-1.amazonaws.com
+        - http://careerhelper-web-dev-1765124463.s3-website-us-east-1.amazonaws.com
       allowedMethods:
         - OPTIONS
         - GET
@@ -182,6 +183,20 @@ functions:
           method: post
 #          authorizer:
 #            name: cognitoAuthorizer
+
+  updateApplication:
+    handler: functions/updateApplication.handler
+    events:
+      - httpApi:
+          path: /applications/{userId}/{applicationId}
+          method: put
+
+  deleteApplication:
+    handler: functions/deleteApplication.handler
+    events:
+      - httpApi:
+          path: /applications/{userId}/{applicationId}
+          method: delete
 
   issueResumeUpload:
     handler: functions/issueResumeUpload.handler

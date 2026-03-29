@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.0.5] - 2026-03-30
+
+### Added
+- **SAVED vs APPLIED Job State Distinction**: Two distinct application states across system
+  - SAVED: jobs bookmarked for later review/application (new state)
+  - APPLIED: submitted applications with status tracking (existing statuses APPLIED, INTERVIEWING, OFFERED, REJECTED, WITHDRAWN)
+- **`updateApplication` Lambda** (`PUT /applications/{userId}/{applicationId}`): transitions SAVED→APPLIED with state guard — rejects attempts to revert from terminal statuses back to SAVED; optional `notes` field for cover letter/application details
+- **`deleteApplication` Lambda** (`DELETE /applications/{userId}/{applicationId}`): removes applications from tracker with 404 handling
+- **Application Tabs in Tracker**: Saved/Applied tabs split by status; Saved tab shows "Apply" + "Remove" per card; Applied tab shows "Delete" with inline confirmation
+- **Inline Apply Workflow**: Position-fixed modal overlay with textarea for optional cover letter notes; SAVED→APPLIED transition on submit; auto-switches to Applied tab
+- **Job State Awareness in JobSearch**: Per-card badges show "✓ Applied" (terminal, no action), "✓ Saved" + Unsave button, or Save button based on application status Map
+- `backend/test/updateApplication.test.js` — 6 tests (SAVED→APPLIED, 404, 400 guard, missing status, missing userId, notes field)
+- `backend/test/deleteApplication.test.js` — 5 tests (successful delete, 404, missing userId, missing applicationId, DynamoDB error)
+
+### Changed
+- **JobSearch.js**: Added natural key helper `(jobTitle|jobCompany|jobLocation)`, `savedAppsMap` state, `fetchApplications()` on mount, per-card state rendering with Save/Unsave/Applied logic
+- **ApplicationTracker.js**: Restructured with `activeTab` state (Saved/Applied), split applications by status, new handlers `handleApplyFromTracker()` and `handleDelete()`, modal and confirmation dialogs using position:fixed pattern
+- **getApplications.ts**: Prettier formatting (line length optimization)
+
+### Fixed
+- Application deduplication now fully integrated across system (natural key: jobTitle|jobCompany|jobLocation)
+
 ## [0.0.4] - 2026-03-29
 
 ### Added
@@ -78,7 +100,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - GitHub Actions CI/CD
 - Basic unit tests
 
-[Unreleased]: https://github.com/jackyxhb/CareerHelper/compare/v0.0.4...HEAD
+[Unreleased]: https://github.com/jackyxhb/CareerHelper/compare/v0.0.5...HEAD
+[0.0.5]: https://github.com/jackyxhb/CareerHelper/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/jackyxhb/CareerHelper/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/jackyxhb/CareerHelper/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/jackyxhb/CareerHelper/releases/tag/v0.0.2
